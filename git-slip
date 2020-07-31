@@ -1,0 +1,191 @@
+#!/usr/bin/env zsh
+
+# git-slip
+# copyright 2020 Henry Bley-Vroman
+#
+# Slip your feature and staging branches to the tip of the trunk
+#
+# Useage:
+# 1. Add you feature branches' names to the `rebase_with_main` array
+# 2. Add your staging branches' names to the `stages` array
+# 3. For each of your staging branches, create an array named merge_into_<branch name>,
+#    and add to the array the names of every branch to be staged on it
+# 4. Run the script
+#
+# Works best with git-rerere, as it can automatically continue after a conflict
+# if all conflicts are rerere-resolved.
+
+
+typeset -a stages=(
+  development
+  staging
+)
+
+typeset -a merge_into_development=(
+  490-our-team-redesign
+  883-singleton-lightboxes
+  tags/tags
+)
+
+typeset -a merge_into_staging=(
+  490-our-team-redesign
+  883-singleton-lightboxes
+  tags/tags
+)
+
+typeset -a rebase_with_main=(
+  490-our-team-redesign
+  587-continued
+  796-797-video-collections
+  883-singleton-lightboxes
+  careers-ie11
+  corner-carousel-performance
+  entryfields
+  slider-polish
+  tags/tags
+)
+
+typeset -a reset_hard_to_main=(
+  development
+  staging
+)
+
+log_failure() {
+  print -P "$failure_color${prefix}Did not succeed%f"
+}
+
+log_message() {
+  print -P "$log_color$1%f"
+}
+
+log_success() {
+  print -P "$success_color${prefix}Succeeded%f"
+}
+
+stage() {
+  # Input: <branch> (string)
+  #
+  # Make a new staging branch named <branch> off main,
+  # merging into it (with merge commits) all the branches in the array
+  # named merge_into_<branch>
+
+  log_step "${prefix}Resetting $1 to main"
+  run git checkout $1
+  (( $? )) && log_failure && return 1
+  run git reset --hard main
+  (( $? )) && log_failure && return 1
+
+  for branch in ${(k)${(P)${1:+merge_into_$1}}}; do
+    log_step "Merging $branch into $1"
+    run git checkout $1
+    (( $? )) && return 1
+    run git merge --no-ff --no-edit $branch
+    (( $? )) && resolve_conflict
+  done
+
+  log_divergence $1
+  run git checkout -
+  return 0
+}
+
+rebase_with_main() {
+  # Rebase every branch in the array rebase_with_main with the branch `main`
+
+  local upstream
+
+  for branch in ${(k)rebase_with_main}; do
+    log_step "${prefix}Rebasing $branch off main"
+    run git rebase main $branch
+    (( $? )) && resolve_conflict
+    log_divergence $branch
+  done
+
+  return 0
+}
+
+resolve_conflict() {
+  local conflicted_files
+  log_message "Attempting automatic continuation"
+
+  conflicted_files=$(git diff --name-only --diff-filter=U)
+
+  if [[ $(git config rerere.enabled) == true \
+        && -z $(git rerere diff) \
+        && -n $conflicted_files ]]; then
+    print -P "$log_color${prefix}All conflicts resolved by git-rerere%f"
+    run git add $conflicted_files
+    (( $? )) && return 1
+    run git commit --no-edit
+    (( $? )) && return 1
+  else
+    log_failure
+    return 1
+  fi
+  return 0
+}
+
+run() {
+  # Input: a command
+  #
+  # log_message the command, run it, log_message whether it
+  # succeeded or failed, and return its return 1 code.
+  # Drop-in replacement for just running it.
+
+  local -i exit_code
+
+  print -P "$run_color$prefix$@%f"
+  $@
+  exit_code=$?
+
+  if (( exit_code )); then
+    log_failure
+  else
+    log_success
+  fi
+
+  return $exit_code
+}
+
+log_divergence() {
+  # Input: a branch name
+  #
+  # If the branch has diverged from its upstream, say so immediately
+  # and at the of the script
+
+  # Commit ID for the upstream, if there is an upstream
+  upstream=$(git rev-parse $1@{u} 2>/dev/null)
+
+  # If there's an upstream and its commit ID is not the same as the local branch's
+  if [[ -n $upstream && $upstream != $(git rev-parse $1) ]]; then
+    message="$warn_color${prefix}$1 has diverged from its upstream%f"
+    print -P $message
+    messages+="$message\\n"
+  fi
+}
+
+'builtin' 'setopt' prompt_percent
+
+failure_color=
+log_color=
+messages=
+prefix="  ▶ "
+run_color=
+success_color=
+warn_color=
+
+if ! (( ${+NO_COLOR} )); then
+  autoload -U colors && colors
+  failure_color="%F{red}"
+  log_color="%F{magenta}"
+  run_color="%F{blue}"
+  success_color="%F{green}"
+  warn_color="%F{yellow}"
+fi
+
+rebase_with_main
+for branch in $stages; do
+  stage $branch
+  (( $? )) && return 1
+done
+
+[[ -n $messages ]] && print -P \\n$messages
