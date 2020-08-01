@@ -5,102 +5,78 @@
 #
 # Slip your feature and staging branches to the tip of the trunk
 #
+# Requirements:
+# - Git >=2.23
+# - yq https://github.com/mikefarah/yq
+# - recommended: git-rerere, as it can automatically continue after a
+#   conflict if all conflicts are rerere-resolved. Check with
+#       git config rerere.enabled
+#   and enable with
+#       git config rerere.enabled true
+#
 # Useage:
-# 1. Add you feature branches' names to the `rebase_with_main` array
-# 2. Add your staging branches' names to the `stages` array
-# 3. For each of your staging branches, create an array named merge_into_<branch name>,
-#    and add to the array the names of every branch to be staged on it
-# 4. Run the script
+# 1. Create a `git-slip.yaml`. For example, to
+#   - rebase `branch_1` and `branch_2` with `upstream_1`
+#   - rebase `branch_3` with `upstream_2`
+#   - create a "stage" `branch_4` that starts at `start_point_1` and
+#     merges in first `branch_1` and then `branch_2`
+#   - create a "stage" `branch_5` that starts at `start_point_2` and
+#     merges branches `branch_1` and `branch_3` in an octopus merge
+
+#   ```yaml
+#   rebase:
+#     upstream_1:
+#       - branch_1
+#       - branch_2
+#     upstream_2: branch_3
+#   stage:
+#     start_point_1:
+#       branch_4:
+#         - branch_1
+#         - branch_2
+#     start_point_2:
+#       branch_5: branch_1 branch_3
+#   ```
+# 4. Run `git slip`
 #
 # Works best with git-rerere, as it can automatically continue after a conflict
 # if all conflicts are rerere-resolved.
 
-
-typeset -a stages=(
-  development
-  staging
-)
-
-typeset -a merge_into_development=(
-  490-our-team-redesign
-  883-singleton-lightboxes
-  tags/tags
-)
-
-typeset -a merge_into_staging=(
-  490-our-team-redesign
-  883-singleton-lightboxes
-  tags/tags
-)
-
-typeset -a rebase_with_main=(
-  490-our-team-redesign
-  587-continued
-  796-797-video-collections
-  883-singleton-lightboxes
-  careers-ie11
-  corner-carousel-performance
-  entryfields
-  slider-polish
-  tags/tags
-)
-
-typeset -a reset_hard_to_main=(
-  development
-  staging
-)
 
 log_failure() {
   print -P "$failure_color${prefix}Did not succeed%f"
 }
 
 log_message() {
-  print -P "$log_color$1%f"
+  print -P "$log_color${prefix}$1%f"
 }
 
 log_success() {
   print -P "$success_color${prefix}Succeeded%f"
 }
 
-stage() {
-  # Input: <branch> (string)
-  #
-  # Make a new staging branch named <branch> off main,
-  # merging into it (with merge commits) all the branches in the array
-  # named merge_into_<branch>
-
-  log_step "${prefix}Resetting $1 to main"
-  run git checkout $1
-  (( $? )) && log_failure && return 1
-  run git reset --hard main
-  (( $? )) && log_failure && return 1
-
-  for branch in ${(k)${(P)${1:+merge_into_$1}}}; do
-    log_step "Merging $branch into $1"
-    run git checkout $1
-    (( $? )) && return 1
-    run git merge --no-ff --no-edit $branch
-    (( $? )) && resolve_conflict
-  done
-
-  log_divergence $1
-  run git checkout -
-  return 0
-}
-
-rebase_with_main() {
-  # Rebase every branch in the array rebase_with_main with the branch `main`
-
+rebase() {
+  local branch
+  local branch_value
+  local -a branch_values
+  local exit_code
   local upstream
+  local upstream_path
+  local -a upstream_paths
 
-  for branch in ${(k)rebase_with_main}; do
-    log_step "${prefix}Rebasing $branch off main"
-    run git rebase main $branch
-    (( $? )) && resolve_conflict
-    log_divergence $branch
+  log_message "Rebasing"
+  upstream_paths=( ${(f)"$(yq r --printMode p git-slip.yaml 'rebase.*')"} )
+  for upstream_path in $upstream_paths; do
+    branch_values=( ${(f)"$(yq r git-slip.yaml $upstream_path)"} )
+    upstream=${upstream_path#rebase.}
+    for branch_value in $branch_values; do
+      branch=${branch_value#- }
+      run git rebase ${upstream_path#rebase.} $branch \
+        || resolve_conflict \
+        || exit
+      log_divergence $branch
+    done
   done
-
-  return 0
 }
 
 resolve_conflict() {
@@ -113,10 +89,10 @@ resolve_conflict() {
         && -z $(git rerere diff) \
         && -n $conflicted_files ]]; then
     print -P "$log_color${prefix}All conflicts resolved by git-rerere%f"
-    run git add $conflicted_files
-    (( $? )) && return 1
-    run git commit --no-edit
-    (( $? )) && return 1
+    run git add $conflicted_files \
+      || return 1
+    run git commit --no-edit \
+      || return 1
   else
     log_failure
     return 1
@@ -146,6 +122,45 @@ run() {
   return $exit_code
 }
 
+stage() {
+  local branch
+  local branch_path
+  local -a branch_paths
+  local commit
+  local commit_path
+  local -a commit_paths
+  local file
+  local start_point
+  local start_point_path
+  local -a start_point_paths
+
+  log_message "Staging"
+  start_point_paths=( ${(f)"$(yq r --printMode p git-slip.yaml 'stage.*')"} )
+
+  for start_point_path in $start_point_paths; do
+    start_point=${start_point_path#stage.}
+    branch_paths=( ${(f)"$(yq r --printMode p git-slip.yaml $start_point_path.\*)"} )
+
+    for branch_path in $branch_paths; do
+      branch=${branch_path#$start_point_path.}
+      commit_paths=( ${(f)"$(yq r git-slip.yaml $branch_path)"} )
+
+      run git switch -C $branch $start_point \
+        || log_failure && return 1
+
+      for commit_path in $commit_paths; do
+        commit=${commit_path#- }
+        run git merge --no-ff --no-edit $commit \
+          || resolve_conflict \
+          || exit
+      done
+
+      log_divergence $branch
+      run git switch -
+    done
+  done
+}
+
 log_divergence() {
   # Input: a branch name
   #
@@ -153,6 +168,8 @@ log_divergence() {
   # and at the of the script
 
   # Commit ID for the upstream, if there is an upstream
+  local message
+  local upstream
   upstream=$(git rev-parse $1@{u} 2>/dev/null)
 
   # If there's an upstream and its commit ID is not the same as the local branch's
@@ -182,10 +199,6 @@ if ! (( ${+NO_COLOR} )); then
   warn_color="%F{yellow}"
 fi
 
-rebase_with_main
-for branch in $stages; do
-  stage $branch
-  (( $? )) && return 1
-done
-
+rebase
+stage
 [[ -n $messages ]] && print -P \\n$messages
