@@ -37,7 +37,10 @@
 #     start_point_2:
 #       branch_5: branch_1 branch_3
 #   ```
-# 4. Run `git slip`
+# 2. Run `git slip`
+#
+# To use a different file, pass it as an argument
+#     git slip path/to/file.(yaml|yml)
 #
 # Works best with git-rerere, as it can automatically continue after a conflict
 # if all conflicts are rerere-resolved.
@@ -60,14 +63,18 @@ rebase() {
   local branch_value
   local -a branch_values
   local exit_code
+  local file
   local upstream
   local upstream_path
   local -a upstream_paths
 
-  log_message "Rebasing"
-  upstream_paths=( ${(f)"$(yq r --printMode p git-slip.yaml 'rebase.*')"} )
+  log_message "Rebasing..."
+
+  file=$1
+
+  upstream_paths=( ${(f)"$(yq r --printMode p $file 'rebase.*')"} )
   for upstream_path in $upstream_paths; do
-    branch_values=( ${(f)"$(yq r git-slip.yaml $upstream_path)"} )
+    branch_values=( ${(f)"$(yq r $file $upstream_path)"} )
     upstream=${upstream_path#rebase.}
     for branch_value in $branch_values; do
       branch=${branch_value#- }
@@ -134,16 +141,19 @@ stage() {
   local start_point_path
   local -a start_point_paths
 
-  log_message "Staging"
-  start_point_paths=( ${(f)"$(yq r --printMode p git-slip.yaml 'stage.*')"} )
+  log_message "Staging..."
+
+  file=$1
+
+  start_point_paths=( ${(f)"$(yq r --printMode p $file 'stage.*')"} )
 
   for start_point_path in $start_point_paths; do
     start_point=${start_point_path#stage.}
-    branch_paths=( ${(f)"$(yq r --printMode p git-slip.yaml $start_point_path.\*)"} )
+    branch_paths=( ${(f)"$(yq r --printMode p $file $start_point_path.\*)"} )
 
     for branch_path in $branch_paths; do
       branch=${branch_path#$start_point_path.}
-      commit_paths=( ${(f)"$(yq r git-slip.yaml $branch_path)"} )
+      commit_paths=( ${(f)"$(yq r $file $branch_path)"} )
 
       run git switch -C $branch $start_point \
         || log_failure && return 1
@@ -199,6 +209,9 @@ if ! (( ${+NO_COLOR} )); then
   warn_color="%F{yellow}"
 fi
 
-rebase
-stage
+
+local file=${1:-$PWD/git-slip.yaml}
+
+rebase $file
+stage $file
 [[ -n $messages ]] && print -P \\n$messages
