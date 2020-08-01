@@ -172,9 +172,7 @@ if ! (( ${+NO_COLOR} )); then
   warn_color="%F{yellow}"
 fi
 
-
-local file=${1:-$PWD/git-renew.yaml}
-
-rebase $file
-stage $file
+file=${1:-$PWD/git-renew.yaml}
+# [[ -f $file ]] || return
+rebase $file && stage $file
 [[ -n $messages ]] && print -P \\n$messages
