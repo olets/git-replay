@@ -7,6 +7,25 @@
 # https://github.com/olets/git-renew
 
 
+log_divergence() {
+  # Input: a branch name
+  #
+  # If the branch has diverged from its upstream, say so immediately
+  # and at the of the script
+
+  # Commit ID for the upstream, if there is an upstream
+  local message
+  local upstream
+  upstream=$(git rev-parse $1@{u} 2>/dev/null)
+
+  # If there's an upstream and its commit ID is not the same as the local branch's
+  if [[ -n $upstream && $upstream != $(git rev-parse $1) ]]; then
+    message="$warn_color${prefix}$1 has diverged from its upstream%f"
+    print -P $message
+    messages+="$message\\n"
+  fi
+}
+
 log_failure() {
   print -P "$failure_color${prefix}Did not succeed%f"
 }
@@ -39,6 +58,9 @@ rebase() {
     upstream=${upstream_path#rebase.}
     for branch_value in $branch_values; do
       branch=${branch_value#- }
+
+      git branch -f git-renew/$branch $branch \
+        || exit
 
       run git rebase --rerere-autoupdate ${upstream_path#rebase.} $branch \
         || resolve_conflict
@@ -132,25 +154,6 @@ stage() {
       run git switch -
     done
   done
-}
-
-log_divergence() {
-  # Input: a branch name
-  #
-  # If the branch has diverged from its upstream, say so immediately
-  # and at the of the script
-
-  # Commit ID for the upstream, if there is an upstream
-  local message
-  local upstream
-  upstream=$(git rev-parse $1@{u} 2>/dev/null)
-
-  # If there's an upstream and its commit ID is not the same as the local branch's
-  if [[ -n $upstream && $upstream != $(git rev-parse $1) ]]; then
-    message="$warn_color${prefix}$1 has diverged from its upstream%f"
-    print -P $message
-    messages+="$message\\n"
-  fi
 }
 
 'builtin' 'setopt' prompt_percent
