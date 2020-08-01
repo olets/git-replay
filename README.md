@@ -47,25 +47,25 @@ To enable `git-rerere`, run `git config rerere.enabled true`
 
 - If you hit a conflict and have enabled `git-rerere`,
 
-	1. resolve it
-	1. teach `git-rerere` the resolution by running `git rerere`
-	1. abort the in-progress action (run either `git rebase --abort` or `git merge --abort` as appropriate)
-	1. run `git renew` again
+  1. resolve it
+  1. teach `git-rerere` the resolution by running `git rerere`
+  1. abort the in-progress action (run either `git rebase --abort` or `git merge --abort` as appropriate)
+  1. run `git renew` again
 
 - If you hit a conflict and have not enabled `git-rerere` either
 
-	1. abort the in-progress action (run either `git rebase --abort` or `git merge --abort` as appropriate)
-	1. enable `git-rerere`
-	1. run `git renew` again
-	1. optionally disable `git-rerere` again
+  1. abort the in-progress action (run either `git rebase --abort` or `git merge --abort` as appropriate)
+  1. enable `git-rerere`
+  1. run `git renew` again
+  1. optionally disable `git-rerere` again
 
-	or
+  or
 
-	1. abort the in-progress action (run either `git rebase --abort` or `git merge --abort` as appropriate)
-	1. take the conflicted step out of the `git-renew` config
-	1. run `git renew` again
-	1. do the conflicted step manually
-	1. optionally add the conflicted step back into the `git-renew` config
+  1. abort the in-progress action (run either `git rebase --abort` or `git merge --abort` as appropriate)
+  1. take the conflicted step out of the `git-renew` config
+  1. run `git renew` again
+  1. do the conflicted step manually
+  1. optionally add the conflicted step back into the `git-renew` config
 
 ## Configuration
 
@@ -88,18 +88,18 @@ use
 ```yaml
 # git-renew.yaml
 rebase:
-	main:
-		- feature-1
-		- feature-2
-	production: feature-3
+  main:
+    - feature-1
+    - feature-2
+  production: feature-3
 ```
 
 or
 
 ```yaml
 ...
-	production:
-		- feature-3
+  production:
+    - feature-3
 ```
 
 (Note that array notation `a: [b, c]` is not supported.)
@@ -118,9 +118,9 @@ with objects in the form
 
 ```yaml
 <start-point>:
-	<branch>:
-		- <commit-1>
-		- <commit-2>
+  <branch>:
+    - <commit-1>
+    - <commit-2>
 ```
 
 For example, to automate
@@ -149,16 +149,16 @@ stage:
       - feature-1
       - feature-3
   production:
-  	next: feature-2
+    next: feature-2
 ```
 
 or
 
 ```yaml
 ...
-	production:
-		next:
-			- feature-2
+  production:
+    next:
+      - feature-2
 ```
 
 (Note that array notation `a: [b, c]` is not supported.)
