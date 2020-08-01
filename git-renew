@@ -1,9 +1,9 @@
 #!/usr/bin/env zsh
 
-# git-slip
+# git-renew
 # copyright 2020 Henry Bley-Vroman
 #
-# Slip your feature and staging branches to the tip of the trunk
+# renew your feature and staging branches to the tip of the trunk
 #
 # Requirements:
 # - Git >=2.23
@@ -15,7 +15,7 @@
 #       git config rerere.enabled true
 #
 # Useage:
-# 1. Create a `git-slip.yaml`. For example, to
+# 1. Create a `git-renew.yaml`. For example, to
 #   - rebase `branch_1` and `branch_2` with `upstream_1`
 #   - rebase `branch_3` with `upstream_2`
 #   - create a "stage" `branch_4` that starts at `start_point_1` and
@@ -37,10 +37,10 @@
 #     start_point_2:
 #       branch_5: branch_1 branch_3
 #   ```
-# 2. Run `git slip`
+# 2. Run `git renew`
 #
 # To use a different file, pass it as an argument
-#     git slip path/to/file.(yaml|yml)
+#     git renew path/to/file.(yaml|yml)
 #
 # Works best with git-rerere, as it can automatically continue after a conflict
 # if all conflicts are rerere-resolved.
@@ -210,7 +210,7 @@ if ! (( ${+NO_COLOR} )); then
 fi
 
 
-local file=${1:-$PWD/git-slip.yaml}
+local file=${1:-$PWD/git-renew.yaml}
 
 rebase $file
 stage $file
