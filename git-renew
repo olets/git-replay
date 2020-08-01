@@ -78,9 +78,10 @@ rebase() {
     upstream=${upstream_path#rebase.}
     for branch_value in $branch_values; do
       branch=${branch_value#- }
-      run git rebase ${upstream_path#rebase.} $branch \
-        || resolve_conflict \
-        || exit
+
+      run git rebase --rerere-autoupdate ${upstream_path#rebase.} $branch \
+        || resolve_conflict
+
       log_divergence $branch
     done
   done
@@ -93,16 +94,15 @@ resolve_conflict() {
   conflicted_files=$(git diff --name-only --diff-filter=U)
 
   if [[ $(git config rerere.enabled) == true \
-        && -z $(git rerere diff) \
-        && -n $conflicted_files ]]; then
+        && -z $(git rerere remaining) ]]; then
     print -P "$log_color${prefix}All conflicts resolved by git-rerere%f"
     run git add $conflicted_files \
-      || return 1
+      || exit
     run git commit --no-edit \
-      || return 1
+      || exit
   else
     log_failure
-    return 1
+    exit
   fi
   return 0
 }
@@ -155,14 +155,16 @@ stage() {
       branch=${branch_path#$start_point_path.}
       commit_paths=( ${(f)"$(yq r $file $branch_path)"} )
 
-      run git switch -C $branch $start_point \
-        || log_failure && return 1
+      run git switch -C $branch $start_point
+      if (( $? )); then
+        log_failure && exit
+      fi
 
       for commit_path in $commit_paths; do
         commit=${commit_path#- }
-        run git merge --no-ff --no-edit $commit \
-          || resolve_conflict \
-          || exit
+
+        run git merge --rerere-autoupdate --no-ff --no-edit $commit \
+          || resolve_conflict
       done
 
       log_divergence $branch
