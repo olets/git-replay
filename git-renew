@@ -3,47 +3,8 @@
 # git-renew
 # copyright 2020 Henry Bley-Vroman
 #
-# renew your feature and staging branches to the tip of the trunk
-#
-# Requirements:
-# - Git >=2.23
-# - yq https://github.com/mikefarah/yq
-# - recommended: git-rerere, as it can automatically continue after a
-#   conflict if all conflicts are rerere-resolved. Check with
-#       git config rerere.enabled
-#   and enable with
-#       git config rerere.enabled true
-#
-# Useage:
-# 1. Create a `git-renew.yaml`. For example, to
-#   - rebase `branch_1` and `branch_2` with `upstream_1`
-#   - rebase `branch_3` with `upstream_2`
-#   - create a "stage" `branch_4` that starts at `start_point_1` and
-#     merges in first `branch_1` and then `branch_2`
-#   - create a "stage" `branch_5` that starts at `start_point_2` and
-#     merges branches `branch_1` and `branch_3` in an octopus merge
-
-#   ```yaml
-#   rebase:
-#     upstream_1:
-#       - branch_1
-#       - branch_2
-#     upstream_2: branch_3
-#   stage:
-#     start_point_1:
-#       branch_4:
-#         - branch_1
-#         - branch_2
-#     start_point_2:
-#       branch_5: branch_1 branch_3
-#   ```
-# 2. Run `git renew`
-#
-# To use a different file, pass it as an argument
-#     git renew path/to/file.(yaml|yml)
-#
-# Works best with git-rerere, as it can automatically continue after a conflict
-# if all conflicts are rerere-resolved.
+# Automate Git rebases and stage creation
+# https://github.com/olets/git-renew
 
 
 log_failure() {
