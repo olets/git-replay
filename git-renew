@@ -94,10 +94,10 @@ rebase() {
       branch=${branch_value#- }
 
 
-      run git rebase --rerere-autoupdate ${upstream_path#rebase.} $branch \
-        || resolve_conflict
+      run git rebase --rerere-autoupdate ${upstream_path#rebase.} $branch
+      (( $? && ! dry_run )) && resolve_conflict
 
-      log_divergence $branch
+      (( dry_run )) || log_divergence $branch
     done
   done
 }
@@ -132,6 +132,7 @@ run() {
   local -i exit_code
 
   print -P "$run_color$prefix$@%f"
+  (( dry_run )) && return 0
   $@
   exit_code=$?
 
@@ -175,11 +176,11 @@ stage() {
       for commit_path in $commit_paths; do
         commit=${commit_path#- }
 
-        run git merge --rerere-autoupdate --no-ff --no-edit $commit \
-          || resolve_conflict
+        run git merge --rerere-autoupdate --no-ff --no-edit $commit
+        (( $? && ! dry_run )) && resolve_conflict
       done
 
-      log_divergence $branch
+      (( dry_run )) || log_divergence $branch
       run git switch -
     done
   done
