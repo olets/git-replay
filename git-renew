@@ -165,7 +165,7 @@ resolve_conflict() {
       run git add $conflicted_files \
         || return 1
     else
-      run git commit --no-edit \
+      run git commit ${quiet:+--quiet} --no-edit \
         || return 1
     fi
   else
