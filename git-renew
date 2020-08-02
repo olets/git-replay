@@ -137,7 +137,14 @@ rebase() {
       save_backup || return 1
 
       run git rebase --rerere-autoupdate ${quiet:+--quiet} ${upstream_path#rebase.} $branch
-      (( $? && ! dry_run )) && resolve_conflict
+      exit_code=$?
+
+      if [[ $exit_code == 128 ]]; then
+        # fatal Git error
+        return 1
+      elif (( $? && ! dry_run )); then
+        resolve_conflict
+      fi
 
       (( dry_run )) || log_divergence $branch
     done
