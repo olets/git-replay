@@ -7,6 +7,16 @@
 # https://github.com/olets/git-renew
 
 
+delete_backup() {
+  local -a branches
+
+  branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
+  [[ -z $branches ]] && log_message "No backup found" && return
+
+  log_message "Deleting backup..."
+  run git branch ${quiet:+--quiet} -D $branches
+}
+
 log_divergence() {
   # Input: a branch name
   #
@@ -41,6 +51,10 @@ log_success() {
 main() {
   for opt in $@; do
     case $opt in
+      clean)
+        clean=1
+        shift
+        ;;
       --dry-run|\
       -n)
         dry_run=1
@@ -57,8 +71,8 @@ main() {
         quieter=1
         shift
         ;;
-      --keep-backup)
-        keep_backup=1
+      --back-up)
+        back_up=1
         ;;
       restore)
         restore=1
@@ -74,6 +88,14 @@ main() {
   if ! [[ -f $file ]]; then
     print -P "$failure_color${prefix}Could not find the file $file%f"
     return
+  fi
+
+  if (( restore )); then
+    restore_backup
+    return $?
+  elif (( clean )); then
+    delete_backup
+    return $?
   fi
 
   (( dry_run )) && prefix+="*Dry run* "
@@ -99,6 +121,7 @@ rebase() {
     for branch_value in $branch_values; do
       branch=${branch_value#- }
 
+      save_backup || return 1
 
       run git rebase --rerere-autoupdate ${quiet:+--quiet} ${upstream_path#rebase.} $branch
       (( $? && ! dry_run )) && resolve_conflict
@@ -132,6 +155,25 @@ resolve_conflict() {
   return 0
 }
 
+restore_backup() {
+  local branch
+  local -a branch_paths
+
+  log_message "Restoring backup..."
+
+  # rebased branches
+  branch_paths=( ${(f)"$(yq r $file 'rebase.*.*')"} )
+  # stage branches
+  branch_paths+=( ${(f)"$(yq r $file --printMode p 'stage.*.*')"} )
+
+  for branch_path in $branch_paths; do
+    branch=${branch_paths##*.} # stage branches have prefix `stage.<start-point>.`
+    git switch ${quiet:+--quiet} -C $branch $BACKUP_PREFIX/$branch
+  done
+
+  delete_backup
+}
+
 run() {
   # Input: a command
   #
@@ -157,6 +199,13 @@ run() {
   return $exit_code
 }
 
+save_backup() {
+  (( back_up )) || return 0
+
+  run git branch ${quiet:+--quiet} --force git-renew/$branch $branch
+  return $?
+}
+
 stage() {
   local branch
   local branch_path
@@ -180,6 +229,8 @@ stage() {
       branch=${branch_path#$start_point_path.}
       commit_paths=( ${(f)"$(yq r $file $branch_path)"} )
 
+      save_backup || return 1
+
       run git switch ${quiet:+--quiet} -C $branch $start_point
       if (( $? )); then
         (( quieter )) || log_failure
@@ -201,6 +252,10 @@ stage() {
 
 'builtin' 'setopt' prompt_percent
 
+readonly BACKUP_PREFIX="git-renew"
+
+typeset -i back_up
+typeset -i clean
 typeset -i dry_run
 failure_color=
 file=git-renew.yaml
