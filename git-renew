@@ -38,19 +38,53 @@ log_success() {
   print -P "$success_color${prefix}Succeeded%f"
 }
 
+main() {
+  for opt in $@; do
+    case $opt in
+      --dry-run|\
+      -n)
+        dry_run=1
+        shift
+        ;;
+      --quiet|\
+      -q)
+        quiet=1
+        shift
+        ;;
+      --keep-backup)
+        keep_backup=1
+        ;;
+      restore)
+        restore=1
+        shift
+        ;;
+      *)
+        file=$opt
+        shift
+        ;;
+    esac
+  done
+
+  if ! [[ -f $file ]]; then
+    print -P "$failure_color${prefix}Could not find the file $file%f"
+    return
+  fi
+
+  (( dry_run )) && prefix+="*Dry run* "
+  rebase && stage
+  [[ -n $messages ]] && print -P \\n$messages
+}
+
 rebase() {
   local branch
   local branch_value
   local -a branch_values
   local exit_code
-  local file
   local upstream
   local upstream_path
   local -a upstream_paths
 
   log_message "Rebasing..."
-
-  file=$1
 
   upstream_paths=( ${(f)"$(yq r --printMode p $file 'rebase.*')"} )
   for upstream_path in $upstream_paths; do
@@ -59,8 +93,6 @@ rebase() {
     for branch_value in $branch_values; do
       branch=${branch_value#- }
 
-      git branch -f git-renew/$branch $branch \
-        || exit
 
       run git rebase --rerere-autoupdate ${upstream_path#rebase.} $branch \
         || resolve_conflict
@@ -80,12 +112,12 @@ resolve_conflict() {
         && -z $(git rerere remaining) ]]; then
     print -P "$log_color${prefix}All conflicts resolved by git-rerere%f"
     run git add $conflicted_files \
-      || exit
+      || return 1
     run git commit --no-edit \
-      || exit
+      || return 1
   else
     log_failure
-    exit
+    return 1
   fi
   return 0
 }
@@ -119,14 +151,11 @@ stage() {
   local commit
   local commit_path
   local -a commit_paths
-  local file
   local start_point
   local start_point_path
   local -a start_point_paths
 
   log_message "Staging..."
-
-  file=$1
 
   start_point_paths=( ${(f)"$(yq r --printMode p $file 'stage.*')"} )
 
@@ -158,10 +187,14 @@ stage() {
 
 'builtin' 'setopt' prompt_percent
 
+typeset -i dry_run
 failure_color=
+file=git-renew.yaml
 log_color=
 messages=
 prefix="  ▶ "
+typeset -i quiet
+typeset -i restore
 run_color=
 success_color=
 warn_color=
@@ -175,7 +208,4 @@ if ! (( ${+NO_COLOR} )); then
   warn_color="%F{yellow}"
 fi
 
-file=${1:-$PWD/git-renew.yaml}
-# [[ -f $file ]] || return
-rebase $file && stage $file
-[[ -n $messages ]] && print -P \\n$messages
+main $@
