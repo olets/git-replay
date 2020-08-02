@@ -253,7 +253,7 @@ stage() {
 }
 
 help() {
-  'command' 'man' git-renew 2>/dev/null \
+  man git-renew 2>/dev/null \
     || 'command' 'cat' ${0:A:h}/man/git-renew.txt | 'command' 'less' -F
 }
 
