@@ -1,0 +1,119 @@
+.TH "GIT-RENEW" 1 "August 2 2020" "git-renew 1.0.0" "User Commands"
+.SH NAME
+git-renew \- automate Git rebases and stage creation
+.SH SYNOPSIS
+
+\fBgit renew\fR [\fI<file.(yaml|yml)>\fR] [\fI--back-up\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+[\fI--dry-run\fR]
+
+\fBgit renew clean\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+
+\fBgit renew restore\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+
+\fBgit renew\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
+
+.SH DESCRIPTION
+\fBgit-renew\fR automate the rebasing of Git branches and creation of
+stage branches (ie branches into which one or more feature branch is
+merged with a merge commit).
+
+.SH Commands
+The following commands are available:
+
+.IP \(bu
+\fBgit renew\fR [\fI<file.(yaml|yml)>\fR] [\fI--back-up\fR]
+[(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+
+Run the configured automation.
+
+The \fIback-up\fR option saves a copy of every branch. Backup branches are
+prefixed with \fIgit-renew/\fR.
+
+The \fIquiet\fR option passes the `--quiet` flag to Git when applicable.
+
+The \fIquieter\fR option additionally suppresses most git-renew output.
+
+The \fIdry-run\fR option logs (unless quieter is set) but does not
+run commands.
+
+.IP \(bu
+\fBgit renew clean\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+
+Delete the backup branches (prefixed \fIgit-renew/\fR).
+
+The \fIquiet\fR option passes the `--quiet` flag to Git when applicable.
+
+The \fIquieter\fR option additionally suppresses most git-renew output.
+
+The \fIdry-run\fR option logs (unless quieter is set) but does not
+run commands.
+
+.IP \(bu
+\fBgit renew restore\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+
+Resets all branches in the config file to where they were before the most
+recent \fBgit renew\fR run.
+
+The \fIquiet\fR option passes the `--quiet` flag to Git when applicable.
+
+The \fIquieter\fR option additionally suppresses most git-renew output.
+
+The \fIdry-run\fR option logs (unless quieter is set) but does not
+run commands.
+
+.IP \(bu
+\fBgit renew\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
+
+Show this document.
+
+.IP \(bu
+\fBversion\fR or \fB\-\-version\fR or \fB\-v\fR
+
+Show the current version.
+
+.SH Configuration
+Configure automation in the YAML configuration file, by default
+\fIgit-renew.yaml\fR in the repo root directory.
+
+.IP \(bu
+\fIRebasing\fR
+
+rebase:
+
+	<upstream 1>:
+
+		- <branch 1>
+
+		- <branch 2>
+
+	<upstream 2>: <branch 3>
+
+	<upstream 4>:
+
+		- <branch 4>
+
+
+.IP \(bu
+\fIStages\fR
+
+stage:
+
+	<start-point 1>:
+
+		- <branch 5>:
+
+			- <commit 1>
+
+			- <commit 2>
+
+			- <commit 3>
+
+		- <branch 6>: <commit 2>
+
+		- <branch 7>:
+
+			- <commit 3>
+
+.SH AUTHORS
+
+Henry Bley\-Vroman <olets@olets.dev>

@@ -1,0 +1,136 @@
+GIT-RENEW(1)                     User Commands                    GIT-RENEW(1)
+
+
+
+NAME
+       git-renew - automate Git rebases and stage creation
+
+SYNOPSIS
+       git  renew [<file.(yaml|yml)>] [--back-up] [(--quiet | -q) | (--quieter
+       | -qq)] [--dry-run]
+
+       git renew clean [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
+
+       git renew restore [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
+
+       git renew (--help | -h | help)
+
+
+DESCRIPTION
+       git-renew automate the rebasing of Git branches and creation  of  stage
+       branches  (ie  branches into which one or more feature branch is merged
+       with a merge commit).
+
+
+Commands
+       The following commands are available:
+
+
+       o      git renew [<file.(yaml|yml)>]  [--back-up]  [(--quiet  |  -q)  |
+              (--quieter | -qq)] [--dry-run]
+
+              Run the configured automation.
+
+              The back-up option saves a copy of every branch. Backup branches
+              are prefixed with git-renew/.
+
+              The quiet option passes the `--quiet` flag to Git when  applica-
+              ble.
+
+              The  quieter  option additionally suppresses most git-renew out-
+              put.
+
+              The dry-run option logs (unless quieter is set) but does not run
+              commands.
+
+
+       o      git renew clean [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
+
+              Delete the backup branches (prefixed git-renew/).
+
+              The quiet option passes the `--quiet` flag to Git when  applica-
+              ble.
+
+              The  quieter  option additionally suppresses most git-renew out-
+              put.
+
+              The dry-run option logs (unless quieter is set) but does not run
+              commands.
+
+
+       o      git  renew  restore [(--quiet | -q) | (--quieter | -qq)] [--dry-
+              run]
+
+              Resets all branches in the config file to where they were before
+              the most recent git renew run.
+
+              The  quiet option passes the `--quiet` flag to Git when applica-
+              ble.
+
+              The quieter option additionally suppresses most  git-renew  out-
+              put.
+
+              The dry-run option logs (unless quieter is set) but does not run
+              commands.
+
+
+       o      git renew (--help | -h | help)
+
+              Show this document.
+
+
+       o      version or --version or -v
+
+              Show the current version.
+
+
+Configuration
+       Configure automation in the YAML configuration file,  by  default  git-
+       renew.yaml in the repo root directory.
+
+
+       o      Rebasing
+
+              rebase:
+
+                   <upstream 1>:
+
+                        - <branch 1>
+
+                        - <branch 2>
+
+                   <upstream 2>: <branch 3>
+
+                   <upstream 4>:
+
+                        - <branch 4>
+
+
+
+       o      Stages
+
+              stage:
+
+                   <start-point 1>:
+
+                        - <branch 5>:
+
+                             - <commit 1>
+
+                             - <commit 2>
+
+                             - <commit 3>
+
+                        - <branch 6>: <commit 2>
+
+                        - <branch 7>:
+
+                             - <commit 3>
+
+
+AUTHORS
+       Henry Bley-Vroman <olets@olets.dev>
+
+
+
+git-renew 1.0.0                  August 2 2020                    GIT-RENEW(1)
