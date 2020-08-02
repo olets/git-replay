@@ -172,7 +172,8 @@ restore_backup() {
 
   for branch_path in $branch_paths; do
     branch=${branch_paths##*.} # stage branches have prefix `stage.<start-point>.`
-    git switch ${quiet:+--quiet} -C $branch $BACKUP_PREFIX/$branch
+    run git switch ${quiet:+--quiet} -C $branch $BACKUP_PREFIX/$branch
+    (( $? )) && return 1
   done
 
   delete_backup
