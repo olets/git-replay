@@ -21,7 +21,7 @@ log_divergence() {
   # If there's an upstream and its commit ID is not the same as the local branch's
   if [[ -n $upstream && $upstream != $(git rev-parse $1) ]]; then
     message="$warn_color${prefix}$1 has diverged from its upstream%f"
-    print -P $message
+    (( quieter )) || print -P $message
     messages+="$message\\n"
   fi
 }
@@ -48,7 +48,13 @@ main() {
         ;;
       --quiet|\
       -q)
-        quiet=1
+        quiet=true
+        shift
+        ;;
+      --quieter|\
+      -qq)
+        quiet=true
+        quieter=1
         shift
         ;;
       --keep-backup)
@@ -94,7 +100,7 @@ rebase() {
       branch=${branch_value#- }
 
 
-      run git rebase --rerere-autoupdate ${upstream_path#rebase.} $branch
+      run git rebase --rerere-autoupdate ${quiet:+--quiet} ${upstream_path#rebase.} $branch
       (( $? && ! dry_run )) && resolve_conflict
 
       (( dry_run )) || log_divergence $branch
@@ -104,19 +110,23 @@ rebase() {
 
 resolve_conflict() {
   local conflicted_files
-  log_message "Attempting automatic continuation"
+  (( quieter )) || log_message "Attempting automatic continuation"
 
-  conflicted_files=$(git diff --name-only --diff-filter=U)
 
   if [[ $(git config rerere.enabled) == true \
         && -z $(git rerere remaining) ]]; then
-    print -P "$log_color${prefix}All conflicts resolved by git-rerere%f"
-    run git add $conflicted_files \
-      || return 1
-    run git commit --no-edit \
-      || return 1
+    conflicted_files=$(git diff --name-only --diff-filter=U)
+
+    log_message "All conflicts resolved by git-rerere"
+    if [[ -n $conflicted_files ]]; then
+      run git add $conflicted_files \
+        || return 1
+    else
+      run git commit --no-edit \
+        || return 1
+    fi
   else
-    log_failure
+    (( quieter )) || log_failure
     return 1
   fi
   return 0
@@ -131,15 +141,17 @@ run() {
 
   local -i exit_code
 
-  print -P "$run_color$prefix$@%f"
+  (( quieter )) || print -P "$run_color$prefix$@%f"
   (( dry_run )) && return 0
   $@
   exit_code=$?
 
-  if (( exit_code )); then
-    log_failure
-  else
-    log_success
+  if ! (( quieter )); then
+    if (( exit_code )); then
+      log_failure
+    else
+      log_success
+    fi
   fi
 
   return $exit_code
@@ -168,20 +180,21 @@ stage() {
       branch=${branch_path#$start_point_path.}
       commit_paths=( ${(f)"$(yq r $file $branch_path)"} )
 
-      run git switch -C $branch $start_point
+      run git switch ${quiet:+--quiet} -C $branch $start_point
       if (( $? )); then
-        log_failure && exit
+        (( quieter )) || log_failure
+        exit
       fi
 
       for commit_path in $commit_paths; do
         commit=${commit_path#- }
 
-        run git merge --rerere-autoupdate --no-ff --no-edit $commit
+        run git merge ${quiet:+--quiet} --rerere-autoupdate --no-ff --no-edit $commit
         (( $? && ! dry_run )) && resolve_conflict
       done
 
       (( dry_run )) || log_divergence $branch
-      run git switch -
+      run git switch ${quiet:+--quiet} -
     done
   done
 }
@@ -194,9 +207,10 @@ file=git-renew.yaml
 log_color=
 messages=
 prefix="  ▶ "
-typeset -i quiet
+quiet= # Boolean but no default value
 typeset -i restore
 run_color=
+typeset -i quieter
 success_color=
 warn_color=
 
