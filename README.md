@@ -32,10 +32,17 @@ brew install olets/tap/git-renew
 With configuration in place, run
 
 ```shell
-git renew
+git renew [<file.(yaml|yml)>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
 ```
 
-`git-renew` will log what it's doing, along with all Git output.
+`git-renew` will rebase all configured branches with their configured upstreams, then reset the configured stage branches to their configured starting points and merge in the configured commits. Progress is logged. If something goes wrong everything is stopped.
+
+Option | Effect
+---|---
+`--back-up` | Create a `git-renew/`-prefixed backup branches for every manipulated branch
+`-dry-run` | Log commands but do not run them
+`--quiet` or `-q` | Quiet standard Git output
+`--quieter` or `-qq` | Quiet standard Git output and git-renew output
 
 ### Handling Git conflicts
 
@@ -66,6 +73,32 @@ To enable `git-rerere`, run `git config rerere.enabled true`
   1. run `git renew` again
   1. do the conflicted step manually
   1. optionally add the conflicted step back into the `git-renew` config
+
+### Additional commands
+
+**clean**
+
+```shell
+git renew clean [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
+```
+
+Delete all branches with the prefix `git-renew/`.
+
+**help**
+
+```shell
+git renew help
+```
+
+Show the manpage.
+
+**restore**
+
+```shell
+git renew restore [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
+```
+
+Reset every rebased branch and stage branch to its `git-renew/`-prefixed backup.
 
 ## Configuration
 
