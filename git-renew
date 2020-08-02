@@ -73,6 +73,12 @@ main() {
         restore=1
         shift
         ;;
+      --version|\
+      -v|\
+      version)
+        print_version
+        exit
+        ;;
       *)
         file=$opt
         shift
@@ -96,6 +102,10 @@ main() {
   (( dry_run )) && prefix+="*Dry run* "
   rebase && stage
   [[ -n $messages ]] && print -P \\n$messages
+}
+
+print_version() {
+  print $VERSION
 }
 
 rebase() {
@@ -236,6 +246,7 @@ stage() {
 'builtin' 'setopt' prompt_percent
 
 readonly BACKUP_PREFIX="git-renew"
+readonly VERSION="1.0.0"
 
 typeset -i back_up
 typeset -i clean
