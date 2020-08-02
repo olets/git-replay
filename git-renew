@@ -35,17 +35,12 @@ log_divergence() {
     messages+="$message\\n"
   fi
 }
-
-log_failure() {
+() {
   print -P "$failure_color${prefix}Did not succeed%f"
 }
 
 log_message() {
   print -P "$log_color${prefix}$1%f"
-}
-
-log_success() {
-  print -P "$success_color${prefix}Succeeded%f"
 }
 
 main() {
@@ -149,7 +144,6 @@ resolve_conflict() {
         || return 1
     fi
   else
-    (( quieter )) || log_failure
     return 1
   fi
   return 0
@@ -188,14 +182,6 @@ run() {
   $@
   exit_code=$?
 
-  if ! (( quieter )); then
-    if (( exit_code )); then
-      log_failure
-    else
-      log_success
-    fi
-  fi
-
   return $exit_code
 }
 
@@ -232,10 +218,7 @@ stage() {
       save_backup || return 1
 
       run git switch ${quiet:+--quiet} -C $branch $start_point
-      if (( $? )); then
-        (( quieter )) || log_failure
-        exit
-      fi
+      (( $? )) && exit
 
       for commit_path in $commit_paths; do
         commit=${commit_path#- }
@@ -257,7 +240,6 @@ readonly BACKUP_PREFIX="git-renew"
 typeset -i back_up
 typeset -i clean
 typeset -i dry_run
-failure_color=
 file=git-renew.yaml
 log_color=
 messages=
@@ -266,15 +248,12 @@ quiet= # Boolean but no default value
 typeset -i restore
 run_color=
 typeset -i quieter
-success_color=
 warn_color=
 
 if ! (( ${+NO_COLOR} )); then
   autoload -U colors && colors
-  failure_color="%F{red}"
   log_color="%F{magenta}"
   run_color="%F{blue}"
-  success_color="%F{green}"
   warn_color="%F{yellow}"
 fi
 
