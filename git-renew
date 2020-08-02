@@ -35,9 +35,6 @@ log_divergence() {
     messages+="$message\\n"
   fi
 }
-() {
-  print -P "$failure_color${prefix}Did not succeed%f"
-}
 
 log_message() {
   print -P "$log_color${prefix}$1%f"
@@ -54,6 +51,12 @@ main() {
       -n)
         dry_run=1
         shift
+        ;;
+      --help|\
+      -h|\
+      help)
+        help
+        exit
         ;;
       --quiet|\
       -q)
@@ -242,6 +245,11 @@ stage() {
       run git switch ${quiet:+--quiet} -
     done
   done
+}
+
+help() {
+  'command' 'man' git-renew 2>/dev/null \
+    || 'command' 'cat' ${0:A:h}/man/git-renew.txt | 'command' 'less' -F
 }
 
 'builtin' 'setopt' prompt_percent
