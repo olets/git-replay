@@ -165,9 +165,7 @@ or
 
 ## Related
 
-Inspired by [git-assembler](https://gitlab.com/wavexx/git-assembler), which is “Like ‘make’, for branches.” It's cool, check it out! The major functional differences:
-- `git-assembler` does not help with conflict resolution; `git-renew` can continue past a conflict point if `git-rerere` has resolved all the conflicts.
-- `git-assembler` keeps track of how far its run has progressed; if something goes wrong, a conflict for example, it can continue from that point after the problem is resolved. `git-renew` does not and cannot, but because it automatically continues past rerere-resolved conflicts it does not need to; hit a conflict, resolve it, and re-run `git-renew`, and it starts from the top but breezes right through the previous run's stumbling block.
+Inspired by [git-assembler](https://gitlab.com/wavexx/git-assembler), which is “Like ‘make’, for branches.” It's cool, check it out! Where git-renew relies on git-rerere in combination with repeated runs to get past conflicts, git-assembler is able resume the latest run. It also has the flexibility to do more than rebase and create stage branches.
 
 ## Contributing
 
