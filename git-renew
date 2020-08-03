@@ -188,7 +188,7 @@ restore_backup() {
   branch_paths+=( ${(f)"$(yq r $file --printMode p 'stage.*.*')"} )
 
   for branch_path in $branch_paths; do
-    branch=${branch_paths##*.} # stage branches have prefix `stage.<start-point>.`
+    branch=${branch_path##*.} # stage branches have prefix `stage.<start-point>.`
     run git switch ${quiet:+--quiet} -C $branch $BACKUP_PREFIX/$branch
     (( $? )) && return 1
   done
