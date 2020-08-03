@@ -153,8 +153,6 @@ rebase() {
 
 resolve_conflict() {
   local conflicted_files
-  (( quieter )) || log_message "Attempting automatic continuation"
-
 
   conflicted_files=$(git diff --name-only --diff-filter=U)
 
