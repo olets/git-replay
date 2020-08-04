@@ -108,8 +108,12 @@ main() {
   fi
 
   (( dry_run )) && prefix+="*Dry run* "
-  rebase && stage
-  [[ -n $messages ]] && print -P \\n$messages
+  rebase
+  (( $? )) || stage
+
+  if [[ -n $messages ]]; then
+    print -P \\n$messages
+  fi
 }
 
 print_version() {
@@ -125,9 +129,13 @@ rebase() {
   local upstream_path
   local -a upstream_paths
 
+  # Return early if there are no branches to rebase
+  [[ -n $(yq r git-renew.yaml 'rebase.*.*') ]] || return 0
+
   log_message "Rebasing..."
 
   upstream_paths=( ${(f)"$(yq r --printMode p $file 'rebase.*')"} )
+
   for upstream_path in $upstream_paths; do
     branch_values=( ${(f)"$(yq r $file $upstream_path)"} )
     upstream=${upstream_path#rebase.}
@@ -235,6 +243,9 @@ stage() {
   local start_point
   local start_point_path
   local -a start_point_paths
+
+  # Return early if there are no branches to stage
+  [[ -z $(yq r git-renew.yaml 'stage.*.*.*') ]] && return 0
 
   log_message "Staging..."
 
