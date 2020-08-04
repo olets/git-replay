@@ -189,8 +189,13 @@ restore_backup() {
 
   for branch_path in $branch_paths; do
     branch=${branch_path##*.} # stage branches have prefix `stage.<start-point>.`
-    run git switch ${quiet:+--quiet} -C $branch $BACKUP_PREFIX/$branch
-    (( $? )) && return 1
+
+    if [[ -n $(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX$branch) ]]; then
+      run git switch ${quiet:+--quiet} -C $branch $BACKUP_PREFIX/$branch \
+        || return 1
+    else
+      log_message "No backup found for the branch '$branch'"
+    fi
   done
 
   delete_backup
