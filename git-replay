@@ -1,10 +1,10 @@
 #!/usr/bin/env zsh
 
-# git-renew
+# git-replay
 # copyright 2020 Henry Bley-Vroman
 #
 # Automate Git rebases and stage creation
-# https://github.com/olets/git-renew
+# https://github.com/olets/git-replay
 
 
 delete_backup() {
@@ -130,7 +130,7 @@ rebase() {
   local -a upstream_paths
 
   # Return early if there are no branches to rebase
-  [[ -n $(yq r git-renew.yaml 'rebase.*.*') ]] || return 0
+  [[ -n $(yq r git-replay.yaml 'rebase.*.*') ]] || return 0
 
   log_message "Rebasing..."
 
@@ -229,7 +229,7 @@ run() {
 save_backup() {
   (( back_up )) || return 0
 
-  run git branch ${quiet:+--quiet} --force git-renew/$branch $branch
+  run git branch ${quiet:+--quiet} --force git-replay/$branch $branch
   return $?
 }
 
@@ -245,7 +245,7 @@ stage() {
   local -a start_point_paths
 
   # Return early if there are no branches to stage
-  [[ -z $(yq r git-renew.yaml 'stage.*.*.*') ]] && return 0
+  [[ -z $(yq r git-replay.yaml 'stage.*.*.*') ]] && return 0
 
   log_message "Staging..."
 
@@ -281,13 +281,13 @@ stage() {
 }
 
 help() {
-  man git-renew 2>/dev/null \
-    || 'command' 'cat' ${0:A:h}/man/git-renew.txt | 'command' 'less' -F
+  man git-replay 2>/dev/null \
+    || 'command' 'cat' ${0:A:h}/man/git-replay.txt | 'command' 'less' -F
 }
 
 'builtin' 'setopt' prompt_percent
 
-readonly BACKUP_PREFIX="git-renew"
+readonly BACKUP_PREFIX="git-replay"
 readonly VERSION="1.0.0"
 
 typeset -i back_up
@@ -304,7 +304,7 @@ typeset -i quieter
 warn_color=
 
 [[ -z $root ]] && return
-file=$root/git-renew.yaml
+file=$root/git-replay.yaml
 
 if ! (( ${+NO_COLOR} )); then
   autoload -U colors && colors
