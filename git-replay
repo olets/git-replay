@@ -257,7 +257,7 @@ stage() {
 
     for branch_path in $branch_paths; do
       branch=${branch_path#$start_point_path.}
-      commit_paths=( ${(f)"$(yq r $file $branch_path)"} )
+      commit_paths=( ${(f)"$(yq r $file $branch_path.\*)"} )
 
       save_backup || return 1
 
@@ -265,7 +265,7 @@ stage() {
       (( $? )) && exit
 
       for commit_path in $commit_paths; do
-        commit=${commit_path#- }
+        commit=${commit_path}
 
         run git merge ${quiet:+--quiet} --rerere-autoupdate --no-ff --no-edit $commit
 
