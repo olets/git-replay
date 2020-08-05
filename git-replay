@@ -36,11 +36,18 @@ log_divergence() {
   fi
 }
 
+log_error() {
+  log_error $1
+}
+
 log_message() {
   print -P "$log_color${prefix}$1%f"
 }
 
 main() {
+  local -a commands
+  local opt
+
   for opt in $@; do
     case $opt in
       clean)
@@ -72,8 +79,16 @@ main() {
       --back-up)
         back_up=1
         ;;
+      rebase)
+        rebase_only=1
+        shift
+        ;;
       restore)
         restore=1
+        shift
+        ;;
+      stage)
+        stage_only=1
         shift
         ;;
       --version|\
@@ -89,31 +104,53 @@ main() {
     esac
   done
 
+  if (( rebase_only && stage_only )); then
+    log_error "Incompatible options"
+    return
+  fi
+
   if [[ -z $root ]]; then
-    log_message "Not a Git repo"
+    log_error "Not a Git repo"
     return
   fi
 
   if ! [[ -f $file ]]; then
-    print -P "$failure_color${prefix}Could not find the file $file%f"
+    log_error "Could not find the file $file"
     return
   fi
 
-  if (( restore )); then
-    restore_backup
-    return $?
-  elif (( clean )); then
-    delete_backup
-    return $?
-  fi
+  ! (( stage_only )) && get_rebase_cmds
+  ! (( rebase_only )) && get_stage_cmds
 
-  (( dry_run )) && prefix+="*Dry run* "
-  rebase
-  (( $? )) || stage
+  cmds=( $rebase_cmds )
+  cmds+=( $stage_cmds )
 
-  if [[ -n $messages ]]; then
-    print -P \\n$messages
-  fi
+  write_todos $cmds #todo
+
+  for cmd in $cmds; do
+    run cmd \
+      && complete_todo # todo
+  done
+
+  status #todo
+
+  clear_todos # todo
+
+  # if (( restore )); then
+  #   restore_backup
+  #   return $?
+  # elif (( clean )); then
+  #   delete_backup
+  #   return $?
+  # fi
+
+  # (( dry_run )) && prefix+="*Dry run* "
+  # rebase
+  # (( $? )) || stage
+
+  # if [[ -n $messages ]]; then
+  #   print -P \\n$messages
+  # fi
 }
 
 print_version() {
@@ -297,10 +334,14 @@ log_color=
 messages=
 prefix="  ▶ "
 quiet= # Boolean but no default value
+typeset -i quieter
+typeset -a rebase_cmds
+typeset -i rebase_only
 typeset -i restore
 root=$(git rev-parse --show-toplevel 2>/dev/null)
 run_color=
-typeset -i quieter
+typeset -a stage_cmds
+typeset -i stage_only
 warn_color=
 
 [[ -z $root ]] && return
