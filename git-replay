@@ -6,7 +6,7 @@
 # Automate Git rebases and stage creation
 # https://github.com/olets/git-replay
 
-abort() {
+__git_replay_abort() {
 	if [[ -f $action_path ]]; then
 		case $(head -1 $action_path) in
 			merge)
@@ -20,11 +20,11 @@ abort() {
 	rm -rf $dir
 }
 
-add_rebase() {
+__git_replay_add_rebase() {
 	local branch
 	local upstream
 
-	[[ $# < 2 ]] && print_error "Requires two arguments (upstream and branch)"
+	[[ $# < 2 ]] && __git_replay_print_error "Requires two arguments (upstream and branch)"
 
 	branch=$2
 	upstream=$1
@@ -32,12 +32,12 @@ add_rebase() {
 	'command' 'yq' w -i $file "rebase.${upstream}[+]" $branch
 }
 
-add_rebase_onto() {
+__git_replay_add_rebase_onto() {
 	local branch
 	local upstream
 	local start_point
 
-	[[ $# < 3 ]] && print_error "Requires three arguments (newbase, upstream, and branch)"
+	[[ $# < 3 ]] && __git_replay_print_error "Requires three arguments (newbase, upstream, and branch)"
 
 	branch=$3
 	newbase=$1
@@ -46,12 +46,12 @@ add_rebase_onto() {
 	'command' 'yq' w -i $file "rebase-onto.$newbase.${upstream}[+]" $branch
 }
 
-add_stage() {
+__git_replay_add_stage() {
 	local branch
 	local upstream
 	local start_point
 
-	[[ $# < 3 ]] && print_error "Requires three arguments (starting point, upstream, and branch)"
+	[[ $# < 3 ]] && __git_replay_print_error "Requires three arguments (starting point, upstream, and branch)"
 
 	branch=$3
 	start_point=$1
@@ -60,27 +60,27 @@ add_stage() {
 	'command' 'yq' w -i $file "stage.$start_point.${upstream}[+]" $branch
 }
 
-delete_backups() {
+__git_replay_delete_backups() {
 	local -a branches
 
 	branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
-	[[ -z $branches ]] && print_warning "No backup found" && return
+	[[ -z $branches ]] && __git_replay_print_warning "No backup found" && return
 
-	print_log "Deleting all backups"
+	__git_replay_print_log "Deleting all backups"
 
 	if (( quiet )); then
 		git branch --quiet -D $branches
 	else
-		print_log "git branch ${quiet:+--quiet }-D $branches"
+		__git_replay_print_log "git branch ${quiet:+--quiet }-D $branches"
 		git branch -D $branches
 	fi
 }
 
-delete_rebase() {
+__git_replay_delete_rebase() {
 	local branch
 	local upstream
 
-	(( $# )) || print_error "Requires one to two arguments (upstream, branch)"
+	(( $# )) || __git_replay_print_error "Requires one to two arguments (upstream, branch)"
 
 	branch=$2
 	upstream=$1
@@ -93,12 +93,12 @@ delete_rebase() {
 	fi
 }
 
-delete_rebase_onto() {
+__git_replay_delete_rebase_onto() {
 	local branch
 	local newbase
 	local upstream
 
-	(( $# )) || print_error "Requires one to three arguments (newbase, upstream, and branch)"
+	(( $# )) || __git_replay_print_error "Requires one to three arguments (newbase, upstream, and branch)"
 
 	branch=$3
 	newbase=$1
@@ -118,12 +118,12 @@ delete_rebase_onto() {
 	fi
 }
 
-delete_stage() {
+__git_replay_delete_stage() {
 	local branch
 	local start_point
 	local upstream
 
-	(( $# )) || print_error "Requires one to three arguments (starting point, upstream, and branch)"
+	(( $# )) || __git_replay_print_error "Requires one to three arguments (starting point, upstream, and branch)"
 
 	branch=$3
 	start_point=$1
@@ -143,7 +143,7 @@ delete_stage() {
 	fi
 }
 
-diverged(){
+__git_replay_diverged(){
 	local branch
 	local remote_sha
 
@@ -154,11 +154,11 @@ diverged(){
 		mkdir -p $dir
 		touch $warning_path
 
-		'builtin' 'echo' "$branch has diverged from its upstream" >> $warning_path
+		'builtin' 'echo' "$branch has __git_replay_diverged from its upstream" >> $warning_path
 	fi
 }
 
-do_todos() {
+__git_replay_do_todos() {
 	local cmd
 	local -a cmd_words
 	local todo
@@ -184,8 +184,8 @@ do_todos() {
 				touch $action_path
 				'builtin' 'echo' merge > $action_path
 
-				print_log "Merging $commit into $branch"
-				(( quiet )) || print_log "git merge ${quiet:+"--quiet "}--rerere-autoupdate --no-ff --no-edit $commit"
+				__git_replay_print_log "Merging $commit into $branch"
+				(( quiet )) || __git_replay_print_log "git merge ${quiet:+"--quiet "}--rerere-autoupdate --no-ff --no-edit $commit"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
@@ -196,7 +196,7 @@ do_todos() {
 						the_exit_code=$?
 					fi
 
-					(( the_exit_code )) && merge_continue $commit $branch $the_exit_code
+					(( the_exit_code )) && __git_replay_merge_continue $commit $branch $the_exit_code
 				fi
 
 				rm $action_path
@@ -208,8 +208,8 @@ do_todos() {
 				branch=$cmd_words[3]
 				commit=$cmd_words[2]
 
-				print_log "Continuing merging $commit into $branch"
-				git rerere && merge_continue $commit $branch
+				__git_replay_print_log "Continuing merging $commit into $branch"
+				git rerere && __git_replay_merge_continue $commit $branch
 
 				rm $action_path
 				;;
@@ -225,8 +225,8 @@ do_todos() {
 				'builtin' 'echo' rebase > $action_path
 
 				if (( back_up )); then
-					print_log "Backing up $branch"
-					(( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
+					__git_replay_print_log "Backing up $branch"
+					(( quiet )) || __git_replay_print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
 					if ! (( dry_run )); then
 						if (( quiet )); then
@@ -237,8 +237,8 @@ do_todos() {
 					fi
 				fi
 
-				print_log "Rebasing $branch off $upstream"
-				(( quiet )) || print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate $upstream $branch"
+				__git_replay_print_log "Rebasing $branch off $upstream"
+				(( quiet )) || __git_replay_print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate $upstream $branch"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
@@ -249,8 +249,8 @@ do_todos() {
 						the_exit_code=$?
 					fi
 
-					(( the_exit_code )) && rebase_continue $the_exit_code $upstream $branch
-					diverged $branch
+					(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch
+					__git_replay_diverged $branch
 				fi
 
 				rm $action_path
@@ -265,12 +265,12 @@ do_todos() {
 				upstream=$cmd_words[2]
 
 				if [[ -n $newbase ]]; then
-					print_log "Continuing rebasing $branch onto $newbase from $upstream"
+					__git_replay_print_log "Continuing rebasing $branch onto $newbase from $upstream"
 				else
-					print_log "Continuing rebasing $branch off $upstream"
+					__git_replay_print_log "Continuing rebasing $branch off $upstream"
 				fi
 
-				(( quiet )) || print_log "git rerere"
+				(( quiet )) || __git_replay_print_log "git rerere"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
@@ -279,9 +279,9 @@ do_todos() {
 						git rerere
 					fi
 
-					rebase_continue 0 $upstream $branch
+					__git_replay_rebase_continue 0 $upstream $branch
 					set -x
-					diverged $branch
+					__git_replay_diverged $branch
 					set +x
 				fi
 
@@ -301,8 +301,8 @@ do_todos() {
 				'builtin' 'echo' rebased > $action_path
 
 				if (( back_up )); then
-					print_log "Backing up $branch"
-					(( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
+					__git_replay_print_log "Backing up $branch"
+					(( quiet )) || __git_replay_print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
 					if ! (( dry_run )); then
 						if (( quiet )); then
@@ -313,8 +313,8 @@ do_todos() {
 					fi
 				fi
 
-				print_log "Rebasing $branch onto $newbase from $upstream"
-				(( quiet )) || print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate --onto $newbase $upstream $branch"
+				__git_replay_print_log "Rebasing $branch onto $newbase from $upstream"
+				(( quiet )) || __git_replay_print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate --onto $newbase $upstream $branch"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
@@ -325,8 +325,8 @@ do_todos() {
 						the_exit_code=$?
 					fi
 
-					(( the_exit_code )) && rebase_continue $the_exit_code $upstream $branch $newbase
-					diverged $branch
+					(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch $newbase
+					__git_replay_diverged $branch
 				fi
 
 				rm $action_path
@@ -336,7 +336,7 @@ do_todos() {
 
 				branch=$cmd_words[2]
 
-				(( dry_run )) || diverged $branch
+				(( dry_run )) || __git_replay_diverged $branch
 				;;
 			stage-start)
 				local branch
@@ -346,8 +346,8 @@ do_todos() {
 				start_point=$cmd_words[3]
 
 				if (( back_up )); then
-					print_log "Backing up $branch"
-					(( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
+					__git_replay_print_log "Backing up $branch"
+					(( quiet )) || __git_replay_print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
 					if ! (( dry_run )); then
 						if (( quiet )); then
@@ -358,8 +358,8 @@ do_todos() {
 					fi
 				fi
 
-				print_log "Resetting $branch to $start_point"
-				(( quiet )) || print_log "git switch ${quiet:+"--quiet "}-C $branch $start_point"
+				__git_replay_print_log "Resetting $branch to $start_point"
+				(( quiet )) || __git_replay_print_log "git switch ${quiet:+"--quiet "}-C $branch $start_point"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
@@ -370,31 +370,31 @@ do_todos() {
 				fi
 				;;
 			*)
-				print_error "git-replay can not run the todo \`$todo'"
+				__git_replay_print_error "git-replay can not run the todo \`$todo'"
 				;;
 		esac
 
-		do_todos
+		__git_replay_do_todos
 	fi
 
 	# this end is hit many times. why??
 }
 
-print_error() {
-	warnings
+__git_replay_print_error() {
+	__git_replay_warnings
 	'builtin' 'print' -P "$color[error]$@%f"
 	'builtin' 'exit' 1
 }
 
-main() {
+__git_replay_main() {
 	while (( $# )); do
 		case $1 in
 			--abort)
-				abort
+				__git_replay_abort
 				return
 				;;
 			--continue)
-				[[ -f $todo_path ]] || print_error "fatal: No replay in progress?"
+				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
 				queue_rebases=0
 				queue_stages=0
 				shift
@@ -426,27 +426,27 @@ main() {
 				case $1 in
 					rebase)
 						shift
-						add_rebase $@
+						__git_replay_add_rebase $@
 						return
 						;;
 					rebase-onto)
 						shift
-						add_rebase_onto $@
+						__git_replay_add_rebase_onto $@
 						;;
 					stage)
 						shift
-						add_stage $@
+						__git_replay_add_stage $@
 						return
 						;;
 					*)
-						print_error "git-replay 'add' requires 'rebase', 'rebase-onto', or 'stage'"
+						__git_replay_print_error "git-replay 'add' requires 'rebase', 'rebase-onto', or 'stage'"
 						return
 						;;
 				esac
 				return
 				;;
 			delete-backups)
-				delete_backups
+				__git_replay_delete_backups
 				return
 				;;
 			delete)
@@ -454,18 +454,18 @@ main() {
 				case $1 in
 					rebase)
 						shift
-						delete_rebase $@
+						__git_replay_delete_rebase $@
 						;;
 					rebase-onto)
 						shift
-						delete_rebase_onto $@
+						__git_replay_delete_rebase_onto $@
 						;;
 					stage)
 						shift
-						delete_stage $@
+						__git_replay_delete_stage $@
 						;;
 					*)
-						print_error "git-replay 'delete' requires 'rebase', 'rebase-onto', or 'stage'"
+						__git_replay_print_error "git-replay 'delete' requires 'rebase', 'rebase-onto', or 'stage'"
 						;;
 				esac
 				return
@@ -481,7 +481,7 @@ main() {
 				shift
 				;;
 			restore)
-				restore_backup
+				__git_replay_restore_backup
 				return
 				;;
 			stage)
@@ -490,30 +490,30 @@ main() {
 				shift
 				;;
 			*)
-				print_error "git-replay unknown option"
+				__git_replay_print_error "git-replay unknown option"
 				;;
 		esac
 	done
 
 	if ! [[ -f $file ]]; then
-		print_error "Could not find the file $file"
+		__git_replay_print_error "Could not find the file $file"
 	fi
 
 	mkdir -p $dir
 	touch $todo_path
 
-	(( queue_rebases )) && write_rebase_todos
-	(( queue_rebase_ontos )) && write_rebase_onto_todos
-	(( queue_stages )) && write_staging_todos
+	(( queue_rebases )) && __git_replay_write_rebase_todos
+	(( queue_rebase_ontos )) && __git_replay_write_rebase_onto_todos
+	(( queue_stages )) && __git_replay_write_staging_todos
 
-	do_todos && rm $todo_path
-	print_log git-replay completed
-	warnings && rm $warning_path
+	__git_replay_do_todos && rm $todo_path
+	__git_replay_print_log git-replay completed
+	__git_replay_warnings && rm $warning_path
 
-	[[ -f $todo_path || -f $warning_path ]] || abort
+	[[ -f $todo_path || -f $warning_path ]] || __git_replay_abort
 }
 
-merge_continue() {
+__git_replay_merge_continue() {
 	local branch
 	local commit
 	local -i the_exit_code
@@ -523,7 +523,7 @@ merge_continue() {
 	the_exit_code=$3
 
 	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
-		print_error "Cannot continue"
+		__git_replay_print_error "Cannot continue"
 	fi
 
 	if [[ -n $(git rerere remaining) ]]; then
@@ -532,37 +532,37 @@ merge_continue() {
 		'command' 'cat' $todo_path >> $todos_updated
 		'command' 'mv' $todos_updated $todo_path
 
-		diverged $branch
-		print_error "Resolve conflicts, then run \`git replay --continue'"
+		__git_replay_diverged $branch
+		__git_replay_print_error "Resolve conflicts, then run \`git replay --continue'"
 	fi
 
-	print_log "All conflicts resolved by git-rerere"
+	__git_replay_print_log "All conflicts resolved by git-rerere"
 
 	conflicted_files=$(git diff --name-only --diff-filter=U)
 
 	if [[ -n $conflicted_files ]]; then
-		print_log "Adding rerere-resolved conflicted files"
-		(( quiet )) || print_log "git add $conflicted_files"
+		__git_replay_print_log "Adding rerere-resolved conflicted files"
+		(( quiet )) || __git_replay_print_log "git add $conflicted_files"
 		git add $conflicted_files
 	fi
 
-	(( quiet )) || print_log "git commit --no-edit"
-	git commit --no-edit || print_error "Cannot continue"
+	(( quiet )) || __git_replay_print_log "git commit --no-edit"
+	git commit --no-edit || __git_replay_print_error "Cannot continue"
 }
 
-print_log() {
+__git_replay_print_log() {
 	(( quieter )) || 'builtin' 'print' -P "$color[log]$@%f"
 }
 
-print_success() {
+__git_replay_print_success() {
 	(( quieter )) || 'builtin' 'print' -P "$color[success]$@%f"
 }
 
-print_warning() {
+__git_replay_print_warning() {
 	(( quieter )) || 'builtin' 'print' -P "$color[warning]$@%f"
 }
 
-rebase_continue() {
+__git_replay_rebase_continue() {
 	local branch
 	local -i the_exit_code
 	local newbase
@@ -574,7 +574,7 @@ rebase_continue() {
 	upstream=$2
 
 	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
-		print_error "Cannot continue"
+		__git_replay_print_error "Cannot continue"
 	fi
 
 	if [[ -n $(git rerere remaining) ]]; then
@@ -583,26 +583,26 @@ rebase_continue() {
 		'command' 'cat' $todo_path >> $todos_updated
 		'command' 'mv' $todos_updated $todo_path
 
-		diverged $branch
-		print_error "Resolve conflicts, then run \`git replay --continue'"
+		__git_replay_diverged $branch
+		__git_replay_print_error "Resolve conflicts, then run \`git replay --continue'"
 	fi
 
-	print_log "All conflicts resolved by git-rerere"
+	__git_replay_print_log "All conflicts resolved by git-rerere"
 
 	conflicted_files=$(git diff --name-only --diff-filter=U)
 
 	if [[ -n $conflicted_files ]]; then
-		print_log "Adding rerere-resolved conflicted files"
-		(( quiet )) || print_log "git add $conflicted_files"
+		__git_replay_print_log "Adding rerere-resolved conflicted files"
+		(( quiet )) || __git_replay_print_log "git add $conflicted_files"
 		git add $conflicted_files
 	fi
 
-	(( quiet )) || print_log "git commit --no-edit && git rebase --continue"
-	git commit --no-edit || print_error "Cannot continue"
-	git rebase --continue || rebase_continue $? $upstream $branch $newbase
+	(( quiet )) || __git_replay_print_log "git commit --no-edit && git rebase --continue"
+	git commit --no-edit || __git_replay_print_error "Cannot continue"
+	git rebase --continue || __git_replay_rebase_continue $? $upstream $branch $newbase
 }
 
-restore_backup() {
+__git_replay_restore_backup() {
 	local branch
 	local -a branch_paths
 
@@ -612,8 +612,8 @@ restore_backup() {
 	branches+=( ${(f)"$('command' 'yq' r $file 'stage.*.*.*')"} )
 
 	for branch in $branches; do
-		print_log "Restoring $branch"
-		(( quiet )) || print_log "git switch ${quiet:+--quiet }-C $branch $BACKUP_PREFIX/$branch"
+		__git_replay_print_log "Restoring $branch"
+		(( quiet )) || __git_replay_print_log "git switch ${quiet:+--quiet }-C $branch $BACKUP_PREFIX/$branch"
 
 		if (( quiet )); then
 			git switch --quiet -C $branch $BACKUP_PREFIX/$branch
@@ -622,23 +622,23 @@ restore_backup() {
 		fi
 	done
 
-	delete_backups
+	__git_replay_delete_backups
 }
 
-warnings() {
+__git_replay_warnings() {
 	[[ -f $warning_path ]] || return
 
-	local -a warnings
+	local -a __git_replay_warnings
 
-	warnings=( ${(f)"$('command' 'cat' $warning_path)"} )
-	'builtin' 'typeset' -U warnings
+	__git_replay_warnings=( ${(f)"$('command' 'cat' $warning_path)"} )
+	'builtin' 'typeset' -U __git_replay_warnings
 
-	for warning in $warnings; do
-		print_warning $warning
+	for warning in $__git_replay_warnings; do
+		__git_replay_print_warning $warning
 	done
 }
 
-write_rebase_todos() {
+__git_replay_write_rebase_todos() {
 	local branch
 	local branch_value
 	local -a branch_values
@@ -658,7 +658,7 @@ write_rebase_todos() {
 	done
 }
 
-write_rebase_onto_todos() {
+__git_replay_write_rebase_onto_todos() {
 	local upstream
 	local upstream_path
 	local -a upstream_paths
@@ -685,7 +685,7 @@ write_rebase_onto_todos() {
 	done
 }
 
-write_staging_todos() {
+__git_replay_write_staging_todos() {
 	local branch
 	local branch_path
 	local -a branch_paths
@@ -721,7 +721,7 @@ emulate -L zsh
 
 root=$(git rev-parse --show-toplevel 2>/dev/null)
 if [[ -z $root ]]; then
-	print_log "Not a Git repo"
+	__git_replay_print_log "Not a Git repo"
 	return
 fi
 
@@ -731,7 +731,7 @@ mkdir -p ${TMPDIR:-/tmp/}git-replay
 
 dir=$root/.git/replay
 todo_path=${dir}/git-replay-todos
-warning_path=${dir}/git-replay-warnings
+warning_path=${dir}/git-replay-__git_replay_warnings
 action_path=${dir}/git-replay-current-action
 
 file=$root/git-replay.yaml
@@ -744,7 +744,7 @@ file=$root/git-replay.yaml
 'builtin' 'typeset' -i queue_stages
 local quiet
 'builtin' 'typeset' -i quieter
-'builtin' 'typeset' -a warnings
+'builtin' 'typeset' -a __git_replay_warnings
 
 queue_rebases=1
 queue_rebase_ontos=1
@@ -760,4 +760,4 @@ if ! (( ${+NO_COLOR} )); then
 	)
 fi
 
-main $@
+__git_replay_main $@
