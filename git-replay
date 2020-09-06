@@ -60,7 +60,7 @@ __git_replay_add_stage() {
 	'command' 'yq' w -i $file "stage.$start_point.${upstream}[+]" $branch
 }
 
-__git_replay_delete_backups() {
+__git_replay_backup_delete() {
 	local -a branches
 
 	branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
@@ -74,6 +74,29 @@ __git_replay_delete_backups() {
 		__git_replay_print_log "git branch ${quiet:+--quiet }-D $branches"
 		git branch -D $branches
 	fi
+}
+
+__git_replay_backup_restore() {
+	local branch
+	local -a branch_paths
+
+	# rebased branches
+	branches=( ${(f)"$('command' 'yq' r $file 'rebase.*.*')"} )
+	# stage branches
+	branches+=( ${(f)"$('command' 'yq' r $file 'stage.*.*.*')"} )
+
+	for branch in $branches; do
+		__git_replay_print_log "Restoring $branch"
+		(( quiet )) || __git_replay_print_log "git switch ${quiet:+--quiet }-C $branch $BACKUP_PREFIX/$branch"
+
+		if (( quiet )); then
+			git switch --quiet -C $branch $BACKUP_PREFIX/$branch
+		else
+			git switch -C $branch $BACKUP_PREFIX/$branch
+		fi
+	done
+
+	__git_replay_backup_delete
 }
 
 __git_replay_delete_rebase() {
@@ -445,8 +468,12 @@ __git_replay_main() {
 				esac
 				return
 				;;
-			delete-backups)
-				__git_replay_delete_backups
+			backup-delete)
+				__git_replay_backup_delete
+				return
+				;;
+			backup-restore)
+				__git_replay_backup_restore
 				return
 				;;
 			delete)
@@ -479,10 +506,6 @@ __git_replay_main() {
 				queue_rebases=0
 				queue_stages=0
 				shift
-				;;
-			restore)
-				__git_replay_restore_backup
-				return
 				;;
 			stage)
 				queue_rebases=0
@@ -600,29 +623,6 @@ __git_replay_rebase_continue() {
 	(( quiet )) || __git_replay_print_log "git commit --no-edit && git rebase --continue"
 	git commit --no-edit || __git_replay_print_error "Cannot continue"
 	git rebase --continue || __git_replay_rebase_continue $? $upstream $branch $newbase
-}
-
-__git_replay_restore_backup() {
-	local branch
-	local -a branch_paths
-
-	# rebased branches
-	branches=( ${(f)"$('command' 'yq' r $file 'rebase.*.*')"} )
-	# stage branches
-	branches+=( ${(f)"$('command' 'yq' r $file 'stage.*.*.*')"} )
-
-	for branch in $branches; do
-		__git_replay_print_log "Restoring $branch"
-		(( quiet )) || __git_replay_print_log "git switch ${quiet:+--quiet }-C $branch $BACKUP_PREFIX/$branch"
-
-		if (( quiet )); then
-			git switch --quiet -C $branch $BACKUP_PREFIX/$branch
-		else
-			git switch -C $branch $BACKUP_PREFIX/$branch
-		fi
-	done
-
-	__git_replay_delete_backups
 }
 
 __git_replay_warnings() {

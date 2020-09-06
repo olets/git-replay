@@ -45,7 +45,7 @@ With configuration in place, run
 ```shell
 git replay [<file.(yaml|yml)>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)] [--file <config file path>] [(--continue | <subcommand>)]
 git replay --abort
-git replay ( delete-backups | restore )
+git replay ( backup-delete | backup-restore )
 ```
 
 If no `<subcommand>` is specified, everything in the configuration file will be replayed.
@@ -90,6 +90,22 @@ git replay add stage <start-point> <upstream> <branch>
 
 `git replay add stage <start point> <upstream> <branch>` adds the configuration for `git switch -C <upstream> <start point> && git merge --no-ff <branch>`.
 
+**backup-delete**
+
+```shell
+git replay backup-delete
+```
+
+Delete all branches with the prefix `git-replay/`.
+
+**backup-restore**
+
+```shell
+git replay backup-restore
+```
+
+Reset every configured branch to its `git-replay/`-prefixed backup, and then delete all backups.
+
 **delete**
 
 ```shell
@@ -114,14 +130,6 @@ git replay delete stage <start-point> [<upstream> [<branch>]]
 
 `git replay delete stage <start point> <upstream> <branch>` deletes the configuration for `git switch -C <upstream> <start point> && git merge --no-ff <branch>`.
 
-**delete-backups**
-
-```shell
-git replay delete-backups
-```
-
-Delete all branches with the prefix `git-replay/`.
-
 **help**
 
 ```shell
@@ -145,14 +153,6 @@ git replay rebase-onto
 ```
 
 Replay only the configured `git rebase --onto`s. Does not include configured non-`--onto` `git rebase`s.
-
-**restore**
-
-```shell
-git replay restore
-```
-
-Reset every configured branch to its `git-replay/`-prefixed backup, and then delete all backups.
 
 **stage**
 
