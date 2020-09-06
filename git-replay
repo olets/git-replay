@@ -65,7 +65,14 @@ do_todos() {
 		    fi
 
 				if (( the_exit_code )); then
-					[[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true || -n $(git rerere remaining) ]] && return
+					# set -x
+					if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
+						print_error "Cannot continue"
+					fi
+
+					if [[ -n $(git rerere remaining) ]]; then
+						print_error "Resolve conflicts, then run \`git rerere && git merge --abort && git replay'"
+					fi
 
 					conflicted_files=$(git diff --name-only --diff-filter=U)
 
@@ -114,7 +121,13 @@ do_todos() {
 	      fi
 
 				if (( the_exit_code )); then
-					[[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true || -n $(git rerere remaining) ]] && return
+					if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
+						print_error "Cannot continue"
+					fi
+
+					if [[ -n $(git rerere remaining) ]]; then
+						print_error "Resolve conflicts, then run \`git rerere && git rebase --abort && git replay'"
+					fi
 
 					conflicted_files=$(git diff --name-only --diff-filter=U)
 
