@@ -360,7 +360,9 @@ do_todos() {
 					fi
 		    fi
 				;;
-			*) ;;
+			*)
+				print_error "git-replay can not run the todo \`$todo'"
+				;;
 		esac
 
 		do_todos
