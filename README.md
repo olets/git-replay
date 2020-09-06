@@ -7,9 +7,9 @@ Handy if you follow a linear or merge-commit-free Git process, have several feat
 - [Installation](#installation)
 - [Requirements](#requirements)
 - [Usage](#usage)
-	- [Options](#options)
-	- [Subcommands](#subcommands)
-	- [Handling conflicts](#handling-conflicts)
+  - [Options](#options)
+  - [Subcommands](#subcommands)
+  - [Handling conflicts](#handling-conflicts)
 - [Configuration](#configuration)
 - [Related](#related)
 - [Contributing](#contributing)
@@ -190,15 +190,15 @@ use the form
 
 ```yaml
 rebase:
-	<upstream>:
-		- <branch>
+  <upstream>:
+    - <branch>
 ```
 
 or
 
 ```yaml
 rebase:
-	<upstream>: <branch>
+  <upstream>: <branch>
 ```
 
 To automate
@@ -212,9 +212,9 @@ use the form
 
 ```yaml
 rebase:
-	<upstream>:
-		- <branch1>
-		- <branch2>
+  <upstream>:
+    - <branch1>
+    - <branch2>
 ```
 
 To automate
@@ -227,17 +227,17 @@ use the form
 
 ```yaml
 rebase-onto:
-	<newbase>:
-	  <upstream>:
-		  - <branch>
+  <newbase>:
+    <upstream>:
+      - <branch>
 ```
 
 or, if there's only one <branch>
 
 ```yaml
 rebase-onto:
-	<newbase>:
-	  <upstream>: <branch>
+  <newbase>:
+    <upstream>: <branch>
 ```
 
 To automate
@@ -251,10 +251,10 @@ use the form
 
 ```yaml
 rebase-onto:
-	<newbase>:
-	  <upstream>:
-		  - <branch1>
-		  - <branch2>
+  <newbase>:
+    <upstream>:
+      - <branch1>
+      - <branch2>
 ```
 
 For example, to automate
@@ -273,19 +273,19 @@ use
 ```yaml
 # git-replay.yaml
 rebase:
-	main:
-		- feature-1
-		- feature-2
-		- next
-	feature-2:
-		- feature-4
+  main:
+    - feature-1
+    - feature-2
+    - next
+  feature-2:
+    - feature-4
 rebase-onto:
-	feature-2:
-		feature-2@{u}:
-			- feature-2b
-	next:
-		next@{u}:
-			- feature-3
+  feature-2:
+    feature-2@{u}:
+      - feature-2b
+  next:
+    next@{u}:
+      - feature-3
 ```
 
 (Note that array notation `a: [b, c]` is not supported.)
@@ -304,9 +304,9 @@ use the form
 
 ```yaml
 <start-point>:
-	<branch>:
-		- <commit-1>
-		- <commit-2>
+  <branch>:
+    - <commit-1>
+    - <commit-2>
 ```
 
 For example, to automate
@@ -325,13 +325,13 @@ use
 ```yaml
 # git-replay.yaml
 stage:
-	main:
-		development:
-			- feature-1
-			- feature-2
-		staging:
-			- feature-1
-			- feature-3
+  main:
+    development:
+      - feature-1
+      - feature-2
+    staging:
+      - feature-1
+      - feature-3
 ```
 
 (Note that array notation `a: [b, c]` is not supported.)
