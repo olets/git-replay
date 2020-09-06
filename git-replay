@@ -253,7 +253,7 @@ main() {
 				return
 				;;
 			rebase)
-				rebase_only=1
+				queue_stages=0
 				shift
 				;;
 			restore)
@@ -261,7 +261,7 @@ main() {
 				return
 				;;
 			stage)
-				stage_only=1
+				queue_rebases=0
 				shift
 				;;
 			*)
@@ -276,6 +276,8 @@ main() {
 
 	(( stage_only )) || write_rebase_todos
 	(( rebase_only )) || write_staging_todos
+	(( queue_rebases )) && write_rebase_todos
+	(( queue_stages )) && write_staging_todos
 	do_todos
 
 	print_log git-replay completed
@@ -390,9 +392,12 @@ typeset -A color
 typeset -i dry_run
 quiet=
 typeset -i quieter
-typeset -i rebase_only
-typeset -i stage_only
+typeset -i queue_stages
+typeset -i queue_rebases
 typeset -a warnings
+
+queue_stages=1
+queue_rebases=1
 
 if ! (( ${+NO_COLOR} )); then
   autoload -U colors && colors
