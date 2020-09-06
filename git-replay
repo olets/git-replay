@@ -526,7 +526,7 @@ __git_replay_main() {
 	(( queue_stages )) && __git_replay_write_staging_todos
 
 	__git_replay_do_todos && rm $todo_path
-	__git_replay_print_log git-replay completed
+	__git_replay_print_log Replay complete
 	__git_replay_warnings && rm $warning_path
 
 	[[ -f $todo_path || -f $warning_path ]] || __git_replay_abort
