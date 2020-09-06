@@ -298,7 +298,6 @@ do_todos() {
 		do_todos
 	fi
 
-	rm $todo_path
 	# this end is hit many times. why??
 }
 
@@ -387,7 +386,7 @@ main() {
 	(( queue_rebases )) && write_rebase_todos
 	(( queue_stages )) && write_staging_todos
 
-	do_todos
+	do_todos && rm $todo_path
 	print_log git-replay completed
 	warnings && rm $warning_path
 
