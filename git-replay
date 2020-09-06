@@ -60,83 +60,6 @@ add_stage() {
 	yq w -i $file "stage.$start_point.${upstream}[+]" $branch
 }
 
-complete_merge() {
-	local branch
-	local commit
-	local -i the_exit_code
-
-	branch=$2
-	commit=$1
-	the_exit_code=$3
-
-	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
-		print_error "Cannot continue"
-	fi
-
-	if [[ -n $(git rerere remaining) ]]; then
-		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
-		echo "merge-continue $commit $branch" > $todos_updated
-		cat $todo_path >> $todos_updated
-		mv $todos_updated $todo_path
-
-		diverged $branch
-		print_error "Resolve conflicts, then run \`git replay --continue'"
-	fi
-
-	print_log "All conflicts resolved by git-rerere"
-
-	conflicted_files=$(git diff --name-only --diff-filter=U)
-
-	if [[ -n $conflicted_files ]]; then
-		print_log "Adding rerere-resolved conflicted files"
-		(( quiet )) || print_log "git add $conflicted_files"
-		git add $conflicted_files
-	fi
-
-	(( quiet )) || print_log "git commit --no-edit"
-	git commit --no-edit || print_error "Cannot continue"
-}
-
-complete_rebase() {
-	local branch
-	local -i the_exit_code
-	local newbase
-	local upstream
-
-	branch=$3
-	the_exit_code=$1
-	newbase=$4
-	upstream=$2
-
-	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
-		print_error "Cannot continue"
-	fi
-
-	if [[ -n $(git rerere remaining) ]]; then
-		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
-		echo "rebase-continue $upstream $branch $newbase" > $todos_updated
-		cat $todo_path >> $todos_updated
-		mv $todos_updated $todo_path
-
-		diverged $branch
-		print_error "Resolve conflicts, then run \`git replay --continue'"
-	fi
-
-	print_log "All conflicts resolved by git-rerere"
-
-	conflicted_files=$(git diff --name-only --diff-filter=U)
-
-	if [[ -n $conflicted_files ]]; then
-		print_log "Adding rerere-resolved conflicted files"
-		(( quiet )) || print_log "git add $conflicted_files"
-		git add $conflicted_files
-	fi
-
-	(( quiet )) || print_log "git commit --no-edit && git rebase --continue"
-	git commit --no-edit || print_error "Cannot continue"
-	git rebase --continue || complete_rebase $? $upstream $branch $newbase
-}
-
 delete_backups() {
 	local -a branches
 
@@ -273,7 +196,7 @@ do_todos() {
 						the_exit_code=$?
 					fi
 
-					(( the_exit_code )) && complete_merge $commit $branch $the_exit_code
+					(( the_exit_code )) && merge_continue $commit $branch $the_exit_code
 				fi
 
 				rm $action_path
@@ -286,7 +209,7 @@ do_todos() {
 				commit=$cmd_words[2]
 
 				print_log "Continuing merging $commit into $branch"
-				git rerere && complete_merge $commit $branch
+				git rerere && merge_continue $commit $branch
 
 				rm $action_path
 				;;
@@ -326,7 +249,7 @@ do_todos() {
 						the_exit_code=$?
 					fi
 
-					(( the_exit_code )) && complete_rebase $the_exit_code $upstream $branch
+					(( the_exit_code )) && rebase_continue $the_exit_code $upstream $branch
 					diverged $branch
 				fi
 
@@ -356,7 +279,7 @@ do_todos() {
 						git rerere
 					fi
 
-					complete_rebase 0 $upstream $branch
+					rebase_continue 0 $upstream $branch
 					set -x
 					diverged $branch
 					set +x
@@ -402,7 +325,7 @@ do_todos() {
 						the_exit_code=$?
 					fi
 
-					(( the_exit_code )) && complete_rebase $the_exit_code $upstream $branch $newbase
+					(( the_exit_code )) && rebase_continue $the_exit_code $upstream $branch $newbase
 					diverged $branch
 				fi
 
@@ -590,6 +513,43 @@ main() {
 	[[ -f $todo_path || -f $warning_path ]] || abort
 }
 
+merge_continue() {
+	local branch
+	local commit
+	local -i the_exit_code
+
+	branch=$2
+	commit=$1
+	the_exit_code=$3
+
+	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
+		print_error "Cannot continue"
+	fi
+
+	if [[ -n $(git rerere remaining) ]]; then
+		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
+		echo "merge-continue $commit $branch" > $todos_updated
+		cat $todo_path >> $todos_updated
+		mv $todos_updated $todo_path
+
+		diverged $branch
+		print_error "Resolve conflicts, then run \`git replay --continue'"
+	fi
+
+	print_log "All conflicts resolved by git-rerere"
+
+	conflicted_files=$(git diff --name-only --diff-filter=U)
+
+	if [[ -n $conflicted_files ]]; then
+		print_log "Adding rerere-resolved conflicted files"
+		(( quiet )) || print_log "git add $conflicted_files"
+		git add $conflicted_files
+	fi
+
+	(( quiet )) || print_log "git commit --no-edit"
+	git commit --no-edit || print_error "Cannot continue"
+}
+
 print_log() {
 	(( quieter )) || print -P "$color[log]$@%f"
 }
@@ -600,6 +560,46 @@ print_success() {
 
 print_warning() {
 	(( quieter )) || print -P "$color[warning]$@%f"
+}
+
+rebase_continue() {
+	local branch
+	local -i the_exit_code
+	local newbase
+	local upstream
+
+	branch=$3
+	the_exit_code=$1
+	newbase=$4
+	upstream=$2
+
+	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
+		print_error "Cannot continue"
+	fi
+
+	if [[ -n $(git rerere remaining) ]]; then
+		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
+		echo "rebase-continue $upstream $branch $newbase" > $todos_updated
+		cat $todo_path >> $todos_updated
+		mv $todos_updated $todo_path
+
+		diverged $branch
+		print_error "Resolve conflicts, then run \`git replay --continue'"
+	fi
+
+	print_log "All conflicts resolved by git-rerere"
+
+	conflicted_files=$(git diff --name-only --diff-filter=U)
+
+	if [[ -n $conflicted_files ]]; then
+		print_log "Adding rerere-resolved conflicted files"
+		(( quiet )) || print_log "git add $conflicted_files"
+		git add $conflicted_files
+	fi
+
+	(( quiet )) || print_log "git commit --no-edit && git rebase --continue"
+	git commit --no-edit || print_error "Cannot continue"
+	git rebase --continue || rebase_continue $? $upstream $branch $newbase
 }
 
 restore_backup() {
