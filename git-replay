@@ -436,6 +436,7 @@ __git_replay_main() {
 				;;
 			-qq|\
 			--quieter)
+				quiet=1
 				quieter=1
 				shift
 				;;
