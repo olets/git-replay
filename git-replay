@@ -6,6 +6,19 @@
 # Automate Git rebases and stage creation
 # https://github.com/olets/git-replay
 
+abort() {
+	if [[ -f $action_path ]]; then
+		case $(head -1 $action_path) in
+			merge)
+				git merge --abort
+				;;
+			rebase)
+				git rebase --abort
+				;;
+		esac
+	fi
+	rm -rf $dir
+}
 
 add_todo() {
 	echo $1 >> $todo_path
@@ -141,6 +154,9 @@ do_todos() {
 				branch=$cmd_words[3]
 				commit=$cmd_words[2]
 
+				touch $action_path
+				echo merge > $action_path
+
 				print_log "Merging $commit into $branch"
 				(( quiet )) || print_log "git merge ${quiet:+"--quiet "}--rerere-autoupdate --no-ff --no-edit $commit"
 
@@ -155,6 +171,8 @@ do_todos() {
 
 					(( the_exit_code )) && complete_merge $commit $branch $the_exit_code
 		    fi
+
+		    rm $action_path
 				;;
 			merge-continue)
 				local branch
@@ -165,6 +183,8 @@ do_todos() {
 
 				print_log "Continuing merging $commit into $branch"
 				git rerere && complete_merge $commit $branch
+
+				rm $action_path
 				;;
 			rebase)
 				local branch
@@ -173,6 +193,9 @@ do_todos() {
 
 				branch=$cmd_words[3]
 				upstream=$cmd_words[2]
+
+				touch $action_path
+				echo rebase > $action_path
 
 	      if (( back_up )); then
 	      	print_log "Backing up $branch"
@@ -202,6 +225,8 @@ do_todos() {
 					(( the_exit_code )) && complete_rebase $upstream $branch $the_exit_code
 					diverged $branch
 	      fi
+
+	      rm $action_path
 				;;
 			rebase-continue)
 				local branch
@@ -226,6 +251,8 @@ do_todos() {
 					diverged $branch
 					set +x
 	      fi
+
+	      rm $action_path
 				;;
 			stage-end)
 				local branch
@@ -296,6 +323,10 @@ print_warning() {
 main() {
 	while (( $# )); do
 		case $1 in
+			--abort)
+				abort
+				return
+				;;
 			--continue)
 				[[ -f $todo_path ]] || print_error "fatal: No replay in progress?"
 				queue_rebases=0
@@ -360,7 +391,7 @@ main() {
 	print_log git-replay completed
 	warnings && rm $warning_path
 
-	[[ -f $todo_path || -f $warning_path ]] || rm -rf $dir
+	[[ -f $todo_path || -f $warning_path ]] || abort
 }
 
 restore_backup() {
@@ -468,6 +499,7 @@ mkdir -p ${TMPDIR:-/tmp/}git-replay
 dir=$root/.git/replay
 todo_path=${dir}/git-replay-todos
 warning_path=${dir}/git-replay-warnings
+action_path=${dir}/git-replay-current-action
 
 file=$root/git-replay.yaml
 
