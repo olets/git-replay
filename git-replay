@@ -560,8 +560,7 @@ write_staging_todos() {
   local branch_path
   local -a branch_paths
   local commit
-  local commit_path
-  local -a commit_paths
+  local -a commits
   local start_point
   local start_point_path
   local -a start_point_paths
@@ -574,11 +573,10 @@ write_staging_todos() {
 
     for branch_path in $branch_paths; do
       branch=${branch_path#$start_point_path.}
-      commit_paths=( ${(f)"$(yq r $file $branch_path)"} )
+      commits=( ${(f)"$(yq r $file $branch_path.\*)"} )
 			add_todo "stage-start $branch $start_point"
 
-      for commit_path in $commit_paths; do
-        commit=${commit_path#- }
+      for commit in $commits; do
       	add_todo "merge $commit $branch"
       done
 
