@@ -43,7 +43,8 @@ brew install olets/tap/git-replay
 With configuration in place, run
 
 ```shell
-git replay [<file.(yaml|yml)>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)] [--file <config file path>] [(--continue | <subcommand>)]
+git replay [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+        [--file <config file path>] [(--continue | <subcommand>)]
 git replay --abort
 git replay ( backup-delete | backup-restore )
 ```
@@ -295,7 +296,8 @@ rebase-onto:
 To automate
 
 ```shell
-git switch -C <branch> <start-point> # aka `git checkout <branch> && git reset --hard <start-point>
+git switch -C <branch> <start-point>
+        # aka `git checkout <branch> && git reset --hard <start-point>
 git commit --no-ff <commit-1>
 git commit --no-ff <commit-2>
 ```
@@ -312,10 +314,12 @@ use the form
 For example, to automate
 
 ```shell
-git switch -C development main # aka `git checkout development && git reset --hard main`
+git switch -C development main
+        # aka `git checkout development && git reset --hard main`
 git commit --no-ff feature-1
 git commit --no-ff feature-2
-git switch -C staging main # aka `git checkout staging && git reset --hard main`
+git switch -C staging main
+        # aka `git checkout staging && git reset --hard main`
 git commit --no-ff feature-1
 git commit --no-ff feature-3
 ```
