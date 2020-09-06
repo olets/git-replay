@@ -47,6 +47,7 @@ complete_merge() {
 		cat $todo_path >> $todos_updated
 		mv $todos_updated $todo_path
 
+		diverged $branch
 		print_error "Resolve conflicts, then run \`git replay --continue'"
 	fi
 
@@ -83,6 +84,7 @@ complete_rebase() {
 		cat $todo_path >> $todos_updated
 		mv $todos_updated $todo_path
 
+		diverged $branch
 		print_error "Resolve conflicts, then run \`git replay --continue'"
 	fi
 
@@ -107,7 +109,9 @@ diverged(){
   branch=$1
   remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
 
-	[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
+	if [[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]]; then
+	  warnings+=( "$branch has diverged from its upstream" )
+	fi
 }
 
 do_todos() {
@@ -268,6 +272,7 @@ do_todos() {
 }
 
 print_error() {
+	warnings
   print -P "$color[error]$@%f"
   exit 1
 }
@@ -349,16 +354,8 @@ main() {
 	(( queue_stages )) && write_staging_todos
 
 	do_todos
-
 	print_log git-replay completed
-
-	[[ -n $warnings ]] || return
-
-	echo
-
-	for warning in $warnings; do
-		print_warning $warning
-	done
+	warnings
 }
 
 restore_backup() {
@@ -382,6 +379,14 @@ restore_backup() {
   done
 
   clean
+}
+
+warnings() {
+	[[ -n $warnings ]] || return
+	print
+	for warning in $warnings; do
+		print_warning $warning
+	done
 }
 
 write_rebase_todos() {
