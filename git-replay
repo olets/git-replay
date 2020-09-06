@@ -110,7 +110,10 @@ diverged(){
   remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
 
 	if [[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]]; then
-	  warnings+=( "$branch has diverged from its upstream" )
+		mkdir -p $dir
+		touch $warning_path
+
+	  echo "$branch has diverged from its upstream" >> $warning_path
 	fi
 }
 
@@ -267,7 +270,7 @@ do_todos() {
 		do_todos
 	fi
 
-	rm -rf $todo_dir
+	rm $todo_path
 	# this end is hit many times. why??
 }
 
@@ -287,7 +290,6 @@ print_success() {
 
 print_warning() {
   (( quieter )) || print -P "$color[warning]$@%f"
-  warnings+=( "$@" )
 }
 
 main() {
@@ -347,7 +349,7 @@ main() {
     print_error "Could not find the file $file"
   fi
 
-	mkdir -p $todo_dir
+	mkdir -p $dir
 	touch $todo_path
 
 	(( queue_rebases )) && write_rebase_todos
@@ -355,7 +357,9 @@ main() {
 
 	do_todos
 	print_log git-replay completed
-	warnings
+	warnings && rm $warning_path
+
+	[[ -f $todo_path || -f $warning_path ]] || rm -rf $dir
 }
 
 restore_backup() {
@@ -382,8 +386,13 @@ restore_backup() {
 }
 
 warnings() {
-	[[ -n $warnings ]] || return
-	print
+	[[ -f $warning_path ]] || return
+
+	local -a warnings
+
+	warnings=( ${(f)"$(cat $warning_path)"} )
+	typeset -U warnings
+
 	for warning in $warnings; do
 		print_warning $warning
 	done
@@ -455,8 +464,9 @@ readonly BACKUP_PREFIX="git-renew"
 
 mkdir -p ${TMPDIR:-/tmp/}git-replay
 
-todo_dir=$root/.git/replay
-todo_path=${todo_dir}/git-replay-todos
+dir=$root/.git/replay
+todo_path=${dir}/git-replay-todos
+warning_path=${dir}/git-replay-warnings
 
 file=$root/git-replay.yaml
 
