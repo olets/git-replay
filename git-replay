@@ -408,7 +408,7 @@ write_rebase_todos() {
   local upstream_path
   local -a upstream_paths
 
-  upstream_paths=( ${(f)"$(yq r --printMode p $file 'rebase.*')"} )
+  upstream_paths=( ${(f)"$(yq r --stripComments --printMode p $file 'rebase.*')"} )
   for upstream_path in $upstream_paths; do
     branch_values=( ${(f)"$(yq r --stripComments $file $upstream_path)"} )
     upstream=${upstream_path#rebase.}
@@ -430,11 +430,11 @@ write_staging_todos() {
   local start_point_path
   local -a start_point_paths
 
-  start_point_paths=( ${(f)"$(yq r --printMode p $file 'stage.*')"} )
+  start_point_paths=( ${(f)"$(yq r --stripComments --printMode p $file 'stage.*')"} )
 
   for start_point_path in $start_point_paths; do
     start_point=${start_point_path#stage.}
-    branch_paths=( ${(f)"$(yq r --printMode p $file $start_point_path.\*)"} )
+    branch_paths=( ${(f)"$(yq r --stripComments --printMode p $file $start_point_path.\*)"} )
 
     for branch_path in $branch_paths; do
       branch=${branch_path#$start_point_path.}
