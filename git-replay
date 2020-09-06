@@ -60,11 +60,6 @@ add_stage() {
 	yq w -i $file "stage.$start_point.${upstream}[+]" $branch
 }
 
-add_todo() {
-	echo $1 >> $todo_path
-	# echo $1
-}
-
 clean() {
 	local -a branches
 
@@ -658,7 +653,7 @@ write_rebase_todos() {
 		upstream=${upstream_path#rebase.}
 		for branch_value in $branch_values; do
 			branch=${branch_value#- }
-			add_todo "rebase ${upstream_path#rebase.} $branch"
+			echo "rebase ${upstream_path#rebase.} $branch" >> $todo_path
 		done
 	done
 }
@@ -684,7 +679,7 @@ write_rebase_onto_todos() {
 			branches=( ${(f)"$(yq r $file $upstream_path.\*)"} )
 
 			for branch in $branches; do
-				add_todo "rebase-onto $newbase $upstream $branch"
+				echo "rebase-onto $newbase $upstream $branch" >> $todo_path
 			done
 		done
 	done
@@ -709,13 +704,13 @@ write_staging_todos() {
 		for branch_path in $branch_paths; do
 			branch=${branch_path#$start_point_path.}
 			commits=( ${(f)"$(yq r $file $branch_path.\*)"} )
-			add_todo "stage-start $branch $start_point"
+			echo "stage-start $branch $start_point" >> $todo_path
 
 			for commit in $commits; do
-				add_todo "merge $commit $branch"
+				echo "merge $commit $branch" >> $todo_path
 			done
 
-			add_todo "stage-end $branch"
+			echo "stage-end $branch" >> $todo_path
 		done
 	done
 }
