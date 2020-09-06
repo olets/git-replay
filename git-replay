@@ -32,6 +32,20 @@ add_rebase() {
 	yq w -i $file "rebase.${upstream}[+]" $branch
 }
 
+add_rebase_onto() {
+	local branch
+	local upstream
+	local start_point
+
+	[[ $# < 3 ]] && print_error "Requires three arguments (newbase, upstream, and branch)"
+
+	branch=$3
+	newbase=$1
+	upstream=$2
+
+	yq w -i $file "rebase-onto.$newbase.${upstream}[+]" $branch
+}
+
 add_stage() {
 	local branch
 	local upstream
@@ -107,11 +121,13 @@ complete_merge() {
 complete_rebase() {
 	local branch
 	local -i the_exit_code
+	local newbase
 	local upstream
 
-	branch=$2
-	the_exit_code=$3
-	upstream=$1
+	branch=$3
+	the_exit_code=$1
+	newbase=$4
+	upstream=$2
 
 	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
 		print_error "Cannot continue"
@@ -119,7 +135,7 @@ complete_rebase() {
 
 	if [[ -n $(git rerere remaining) ]]; then
 		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
-		echo "rebase-continue $upstream $branch" > $todos_updated
+		echo "rebase-continue $upstream $branch $newbase" > $todos_updated
 		cat $todo_path >> $todos_updated
 		mv $todos_updated $todo_path
 
@@ -139,7 +155,7 @@ complete_rebase() {
 
 	(( quiet )) || print_log "git commit --no-edit && git rebase --continue"
 	git commit --no-edit || print_error "Cannot continue"
-	git rebase --continue || complete_rebase $upstream $branch $?
+	git rebase --continue || complete_rebase $? $upstream $branch $newbase
 }
 
 delete_rebase() {
@@ -156,6 +172,31 @@ delete_rebase() {
 		[[ -z $(yq r $file rebase.$upstream.\*) ]] && yq d -i $file rebase.$upstream
 	else
 		yq d -i $file rebase.$upstream
+	fi
+}
+
+delete_rebase_onto() {
+	local branch
+	local newbase
+	local upstream
+
+	(( $# )) || print_error "Requires one to three arguments (newbase, upstream, and branch)"
+
+	branch=$3
+	newbase=$1
+	upstream=$2
+
+	if [[ -n $branch ]]; then
+		yq d -i $file rebase-onto.$newbase.$upstream.$branch
+
+		[[ -z $(yq r $file rebase-onto.$newbase.$upstream.\*) ]] && yq d -i $file rebase-onto.$newbase.$upstream
+		[[ -z $(yq r $file rebase-onto.$newbase.\*) ]] && yq d -i $file rebase-onto.$newbase
+	elif [[ -n $upstream ]]; then
+		yq d -i $file rebase-onto.$newbase.$upstream
+
+		[[ -z $(yq r $file rebase-onto.$newbase.\*) ]] && yq d -i $file rebase-onto.$newbase
+	else
+		yq d -i $file rebase-onto.$newbase
 	fi
 }
 
@@ -290,7 +331,7 @@ do_todos() {
 						the_exit_code=$?
 					fi
 
-					(( the_exit_code )) && complete_rebase $upstream $branch $the_exit_code
+					(( the_exit_code )) && complete_rebase $the_exit_code $upstream $branch
 					diverged $branch
 				fi
 
@@ -298,12 +339,18 @@ do_todos() {
 				;;
 			rebase-continue)
 				local branch
+				local newbase
 				local upstream
 
 				branch=$cmd_words[3]
+				newbase=$cmd_words[4]
 				upstream=$cmd_words[2]
 
-				print_log "Continuing rebasing $branch off $upstream"
+				if [[ -n $newbase ]]; then
+					print_log "Continuing rebasing $branch onto $newbase from $upstream"
+				else
+					print_log "Continuing rebasing $branch off $upstream"
+				fi
 
 				(( quiet )) || print_log "git rerere"
 
@@ -314,10 +361,54 @@ do_todos() {
 						git rerere
 					fi
 
-					complete_rebase $upstream $branch
+					complete_rebase 0 $upstream $branch
 					set -x
 					diverged $branch
 					set +x
+				fi
+
+				rm $action_path
+				;;
+			rebase-onto)
+				local branch
+				local -i the_exit_code
+				local newbase
+				local upstream
+
+				branch=$cmd_words[4]
+				newbase=$cmd_words[2]
+				upstream=$cmd_words[3]
+
+				touch $action_path
+				echo rebased > $action_path
+
+				if (( back_up )); then
+					print_log "Backing up $branch"
+					(( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
+
+					if ! (( dry_run )); then
+						if (( quiet )); then
+							git branch --quiet --force git-renew/$branch $branch || return
+						else
+							git branch --force git-renew/$branch $branch || return
+						fi
+					fi
+				fi
+
+				print_log "Rebasing $branch onto $newbase from $upstream"
+				(( quiet )) || print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate --onto $newbase $upstream $branch"
+
+				if ! (( dry_run )); then
+					if (( quiet )); then
+						git rebase --quiet --rerere-autoupdate --onto $newbase $upstream $branch
+						the_exit_code=$?
+					else
+						git rebase --rerere-autoupdate --onto $newbase $upstream $branch
+						the_exit_code=$?
+					fi
+
+					(( the_exit_code )) && complete_rebase $the_exit_code $upstream $branch $newbase
+					diverged $branch
 				fi
 
 				rm $action_path
@@ -420,16 +511,21 @@ main() {
 						add_rebase $@
 						return
 						;;
+					rebase-onto)
+						shift
+						add_rebase_onto $@
+						;;
 					stage)
 						shift
 						add_stage $@
 						return
 						;;
 					*)
-						print_error "git-replay 'add' requires either 'rebase' or 'stage'"
+						print_error "git-replay 'add' requires 'rebase', 'rebase-onto', or 'stage'"
 						return
 						;;
 				esac
+				return
 				;;
 			clean)
 				clean
@@ -442,17 +538,27 @@ main() {
 						shift
 						delete_rebase $@
 						;;
+					rebase-onto)
+						shift
+						delete_rebase_onto $@
+						;;
 					stage)
 						shift
 						delete_stage $@
 						;;
 					*)
-						print_error "git-replay 'delete' requires either 'rebase' or 'stage'"
+						print_error "git-replay 'delete' requires 'rebase', 'rebase-onto', or 'stage'"
 						;;
 				esac
 				return
 				;;
 			rebase)
+				queue_rebase_ontos=0
+				queue_stages=0
+				shift
+				;;
+			rebase-onto)
+				queue_rebases=0
 				queue_stages=0
 				shift
 				;;
@@ -462,6 +568,7 @@ main() {
 				;;
 			stage)
 				queue_rebases=0
+				queue_rebase_ontos=0
 				shift
 				;;
 			*)
@@ -478,6 +585,7 @@ main() {
 	touch $todo_path
 
 	(( queue_rebases )) && write_rebase_todos
+	(( queue_rebase_ontos )) && write_rebase_onto_todos
 	(( queue_stages )) && write_staging_todos
 
 	do_todos && rm $todo_path
@@ -555,6 +663,33 @@ write_rebase_todos() {
 	done
 }
 
+write_rebase_onto_todos() {
+	local upstream
+	local upstream_path
+	local -a upstream_paths
+	local branch
+	local -a branches
+	local newbase
+	local newbase_path
+	local -a newbase_paths
+
+	newbase_paths=( ${(f)"$(yq r --stripComments --printMode p $file 'rebase-onto.*')"} )
+
+	for newbase_path in $newbase_paths; do
+		newbase=${newbase_path#rebase-onto.}
+		upstream_paths=( ${(f)"$(yq r --stripComments --printMode p $file $newbase_path.\*)"} )
+
+		for upstream_path in $upstream_paths; do
+			upstream=${upstream_path#$newbase_path.}
+			branches=( ${(f)"$(yq r $file $upstream_path.\*)"} )
+
+			for branch in $branches; do
+				add_todo "rebase-onto $newbase $upstream $branch"
+			done
+		done
+	done
+}
+
 write_staging_todos() {
 	local branch
 	local branch_path
@@ -611,12 +746,14 @@ typeset -A color
 typeset -i dry_run
 quiet=
 typeset -i quieter
-typeset -i queue_stages
 typeset -i queue_rebases
+typeset -i queue_rebase_ontos
+typeset -i queue_stages
 typeset -a warnings
 
-queue_stages=1
 queue_rebases=1
+queue_rebase_ontos=1
+queue_stages=1
 
 if ! (( ${+NO_COLOR} )); then
 	autoload -U colors && colors
