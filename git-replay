@@ -29,9 +29,13 @@ clean() {
 }
 
 complete_merge() {
+	local branch
+	local commit
 	local -i the_exit_code
 
-	the_exit_code=$1
+	branch=$2
+	commit=$1
+	the_exit_code=$3
 
 	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
 		print_error "Cannot continue"
@@ -57,13 +61,17 @@ complete_merge() {
   fi
 
   (( quiet )) || print_log "git commit --no-edit"
-  git commit --no-edit || complete_merge $?
+  git commit --no-edit || complete_merge $commit $branch $?
 }
 
 complete_rebase() {
+	local branch
 	local -i the_exit_code
+	local upstream
 
-	the_exit_code=$1
+	branch=$2
+	the_exit_code=$3
+	upstream=$1
 
 	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
 		print_error "Cannot continue"
@@ -71,7 +79,7 @@ complete_rebase() {
 
 	if [[ -n $(git rerere remaining) ]]; then
 		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
-		echo "rebase-continue $branch $upstream" > $todos_updated
+		echo "rebase-continue $upstream $branch" > $todos_updated
 		cat $todo_path >> $todos_updated
 		mv $todos_updated $todo_path
 
@@ -89,7 +97,17 @@ complete_rebase() {
   fi
 
   (( quiet )) || print_log "git rebase --continue"
-  git rebase --continue || complete_rebase $?
+  git rebase --continue || complete_rebase $upstream $branch $?
+}
+
+diverged(){
+  local branch
+  local remote_sha
+
+  branch=$1
+  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
+
+	[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
 }
 
 do_todos() {
@@ -126,26 +144,19 @@ do_todos() {
 						git merge --rerere-autoupdate --no-ff --no-edit $commit
 			      the_exit_code=$?
 					fi
-		    fi
 
-				(( the_exit_code )) && complete_merge $the_exit_code
+					(( the_exit_code )) && complete_merge $commit $branch $the_exit_code
+		    fi
 				;;
 			merge-continue)
 				local branch
 				local commit
-				local -i the_exit_code
 
-				commit=$1
-				branch=$2
+				branch=$cmd_words[3]
+				commit=$cmd_words[2]
 
 				print_log "Continuing merging $commit into $branch"
-				git rerere && complete_merge $the_exit_code
-
-	      local message
-			  local remote_sha
-			  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
-
-				[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
+				git rerere && complete_merge $commit $branch
 				;;
 			rebase)
 				local branch
@@ -179,48 +190,41 @@ do_todos() {
 						git rebase --rerere-autoupdate $upstream $branch
 			      the_exit_code=$?
 					fi
+
+					(( the_exit_code )) && complete_rebase $upstream $branch $the_exit_code
+					diverged $branch
 	      fi
-
-				(( the_exit_code )) && complete_rebase $the_exit_code
-
-	      local message
-			  local remote_sha
-			  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
-
-				[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
 				;;
 			rebase-continue)
 				local branch
 				local upstream
 
-				branch=$1
-				upstream=$2
+				branch=$cmd_words[3]
+				upstream=$cmd_words[2]
 
 				print_log "Continuing rebasing $branch off $upstream"
-				git rerere && complete_rebase
 
-	      local message
-			  local remote_sha
-			  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
+				(( quiet )) || print_log "git rerere"
 
-				[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
+				if ! (( dry_run )); then
+					if (( quiet )); then
+						git rerere 1>/dev/null
+					else
+						git rerere
+					fi
+
+					complete_rebase $upstream $branch
+					set -x
+					diverged $branch
+					set +x
+	      fi
 				;;
 			stage-end)
+				local branch
+
 				branch=$cmd_words[2]
-				if ! (( dry_run )); then
-		      local message
-				  local remote_sha
-				  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
 
-					[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
-
-		      # print_log "Checking out the previously checked-out branch"
-					# if (( quiet )); then
-					# 	git switch --quiet - || return
-					# else
-					# 	git switch - || return
-					# fi
-	      fi
+				(( dry_run )) || diverged $branch
 	      ;;
 			stage-start)
 				local branch
