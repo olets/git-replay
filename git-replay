@@ -60,22 +60,6 @@ add_stage() {
 	yq w -i $file "stage.$start_point.${upstream}[+]" $branch
 }
 
-clean() {
-	local -a branches
-
-	branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
-	[[ -z $branches ]] && print_warning "No backup found" && return
-
-	print_log "Deleting all backups"
-
-	if (( quiet )); then
-		git branch --quiet -D $branches
-	else
-		print_log "git branch ${quiet:+--quiet }-D $branches"
-		git branch -D $branches
-	fi
-}
-
 complete_merge() {
 	local branch
 	local commit
@@ -151,6 +135,22 @@ complete_rebase() {
 	(( quiet )) || print_log "git commit --no-edit && git rebase --continue"
 	git commit --no-edit || print_error "Cannot continue"
 	git rebase --continue || complete_rebase $? $upstream $branch $newbase
+}
+
+delete_backups() {
+	local -a branches
+
+	branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
+	[[ -z $branches ]] && print_warning "No backup found" && return
+
+	print_log "Deleting all backups"
+
+	if (( quiet )); then
+		git branch --quiet -D $branches
+	else
+		print_log "git branch ${quiet:+--quiet }-D $branches"
+		git branch -D $branches
+	fi
 }
 
 delete_rebase() {
@@ -522,8 +522,8 @@ main() {
 				esac
 				return
 				;;
-			clean)
-				clean
+			delete-backups)
+				delete_backups
 				return
 				;;
 			delete)
@@ -622,7 +622,7 @@ restore_backup() {
 		fi
 	done
 
-	clean
+	delete_backups
 }
 
 warnings() {
