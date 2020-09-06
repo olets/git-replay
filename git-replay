@@ -739,11 +739,11 @@ file=$root/git-replay.yaml
 typeset -i back_up
 typeset -A color
 typeset -i dry_run
-quiet=
-typeset -i quieter
 typeset -i queue_rebases
 typeset -i queue_rebase_ontos
 typeset -i queue_stages
+local quiet
+typeset -i quieter
 typeset -a warnings
 
 queue_rebases=1
