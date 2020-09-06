@@ -52,18 +52,18 @@ add_todo() {
 }
 
 clean() {
-  local -a branches
+	local -a branches
 
-  branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
-  [[ -z $branches ]] && print_warning "No backup found" && return
+	branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
+	[[ -z $branches ]] && print_warning "No backup found" && return
 
-  print_log "Deleting all backups"
+	print_log "Deleting all backups"
 
-  if (( quiet )); then
-	  git branch --quiet -D $branches
+	if (( quiet )); then
+		git branch --quiet -D $branches
 	else
 		print_log "git branch ${quiet:+--quiet }-D $branches"
-	  git branch -D $branches
+		git branch -D $branches
 	fi
 }
 
@@ -94,14 +94,14 @@ complete_merge() {
 
 	conflicted_files=$(git diff --name-only --diff-filter=U)
 
-  if [[ -n $conflicted_files ]]; then
-    print_log "Adding rerere-resolved conflicted files"
-    (( quiet )) || print_log "git add $conflicted_files"
-    git add $conflicted_files
-  fi
+	if [[ -n $conflicted_files ]]; then
+		print_log "Adding rerere-resolved conflicted files"
+		(( quiet )) || print_log "git add $conflicted_files"
+		git add $conflicted_files
+	fi
 
-  (( quiet )) || print_log "git commit --no-edit"
-  git commit --no-edit || print_error "Cannot continue"
+	(( quiet )) || print_log "git commit --no-edit"
+	git commit --no-edit || print_error "Cannot continue"
 }
 
 complete_rebase() {
@@ -131,15 +131,15 @@ complete_rebase() {
 
 	conflicted_files=$(git diff --name-only --diff-filter=U)
 
-  if [[ -n $conflicted_files ]]; then
-    print_log "Adding rerere-resolved conflicted files"
-    (( quiet )) || print_log "git add $conflicted_files"
-    git add $conflicted_files
-  fi
+	if [[ -n $conflicted_files ]]; then
+		print_log "Adding rerere-resolved conflicted files"
+		(( quiet )) || print_log "git add $conflicted_files"
+		git add $conflicted_files
+	fi
 
-  (( quiet )) || print_log "git commit --no-edit && git rebase --continue"
-  git commit --no-edit || print_error "Cannot continue"
-  git rebase --continue || complete_rebase $upstream $branch $?
+	(( quiet )) || print_log "git commit --no-edit && git rebase --continue"
+	git commit --no-edit || print_error "Cannot continue"
+	git rebase --continue || complete_rebase $upstream $branch $?
 }
 
 delete_rebase() {
@@ -185,17 +185,17 @@ delete_stage() {
 }
 
 diverged(){
-  local branch
-  local remote_sha
+	local branch
+	local remote_sha
 
-  branch=$1
-  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
+	branch=$1
+	remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
 
 	if [[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]]; then
 		mkdir -p $dir
 		touch $warning_path
 
-	  echo "$branch has diverged from its upstream" >> $warning_path
+		echo "$branch has diverged from its upstream" >> $warning_path
 	fi
 }
 
@@ -231,16 +231,16 @@ do_todos() {
 				if ! (( dry_run )); then
 					if (( quiet )); then
 						git merge --quiet --rerere-autoupdate --no-ff --no-edit $commit
-			      the_exit_code=$?
+						the_exit_code=$?
 					else
 						git merge --rerere-autoupdate --no-ff --no-edit $commit
-			      the_exit_code=$?
+						the_exit_code=$?
 					fi
 
 					(( the_exit_code )) && complete_merge $commit $branch $the_exit_code
-		    fi
+				fi
 
-		    rm $action_path
+				rm $action_path
 				;;
 			merge-continue)
 				local branch
@@ -265,18 +265,18 @@ do_todos() {
 				touch $action_path
 				echo rebase > $action_path
 
-	      if (( back_up )); then
-	      	print_log "Backing up $branch"
-				  (( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
+				if (( back_up )); then
+					print_log "Backing up $branch"
+					(( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
-				  if ! (( dry_run )); then
+					if ! (( dry_run )); then
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
-			  fi
+				fi
 
 				print_log "Rebasing $branch off $upstream"
 				(( quiet )) || print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate $upstream $branch"
@@ -284,17 +284,17 @@ do_todos() {
 				if ! (( dry_run )); then
 					if (( quiet )); then
 						git rebase --quiet --rerere-autoupdate $upstream $branch
-			      the_exit_code=$?
+						the_exit_code=$?
 					else
 						git rebase --rerere-autoupdate $upstream $branch
-			      the_exit_code=$?
+						the_exit_code=$?
 					fi
 
 					(( the_exit_code )) && complete_rebase $upstream $branch $the_exit_code
 					diverged $branch
-	      fi
+				fi
 
-	      rm $action_path
+				rm $action_path
 				;;
 			rebase-continue)
 				local branch
@@ -318,9 +318,9 @@ do_todos() {
 					set -x
 					diverged $branch
 					set +x
-	      fi
+				fi
 
-	      rm $action_path
+				rm $action_path
 				;;
 			stage-end)
 				local branch
@@ -328,7 +328,7 @@ do_todos() {
 				branch=$cmd_words[2]
 
 				(( dry_run )) || diverged $branch
-	      ;;
+				;;
 			stage-start)
 				local branch
 				local start_point
@@ -336,29 +336,29 @@ do_todos() {
 				branch=$cmd_words[2]
 				start_point=$cmd_words[3]
 
-	      if (( back_up )); then
-	      	print_log "Backing up $branch"
-				  (( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
+				if (( back_up )); then
+					print_log "Backing up $branch"
+					(( quiet )) || print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
-				  if ! (( dry_run )); then
+					if ! (( dry_run )); then
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
-			  fi
+				fi
 
 				print_log "Resetting $branch to $start_point"
-	      (( quiet )) || print_log "git switch ${quiet:+"--quiet "}-C $branch $start_point"
+				(( quiet )) || print_log "git switch ${quiet:+"--quiet "}-C $branch $start_point"
 
-	      if ! (( dry_run )); then
+				if ! (( dry_run )); then
 					if (( quiet )); then
 						git switch --quiet -C $branch $start_point || return
 					else
 						git switch -C $branch $start_point || return
 					fi
-		    fi
+				fi
 				;;
 			*)
 				print_error "git-replay can not run the todo \`$todo'"
@@ -373,8 +373,8 @@ do_todos() {
 
 print_error() {
 	warnings
-  print -P "$color[error]$@%f"
-  exit 1
+	print -P "$color[error]$@%f"
+	exit 1
 }
 
 main() {
@@ -470,9 +470,9 @@ main() {
 		esac
 	done
 
-  if ! [[ -f $file ]]; then
-    print_error "Could not find the file $file"
-  fi
+	if ! [[ -f $file ]]; then
+		print_error "Could not find the file $file"
+	fi
 
 	mkdir -p $dir
 	touch $todo_path
@@ -488,38 +488,38 @@ main() {
 }
 
 print_log() {
-  (( quieter )) || print -P "$color[log]$@%f"
+	(( quieter )) || print -P "$color[log]$@%f"
 }
 
 print_success() {
-  (( quieter )) || print -P "$color[success]$@%f"
+	(( quieter )) || print -P "$color[success]$@%f"
 }
 
 print_warning() {
-  (( quieter )) || print -P "$color[warning]$@%f"
+	(( quieter )) || print -P "$color[warning]$@%f"
 }
 
 restore_backup() {
-  local branch
-  local -a branch_paths
+	local branch
+	local -a branch_paths
 
-  # rebased branches
-  branches=( ${(f)"$(yq r $file 'rebase.*.*')"} )
-  # stage branches
-  branches+=( ${(f)"$(yq r $file 'stage.*.*.*')"} )
+	# rebased branches
+	branches=( ${(f)"$(yq r $file 'rebase.*.*')"} )
+	# stage branches
+	branches+=( ${(f)"$(yq r $file 'stage.*.*.*')"} )
 
-  for branch in $branches; do
-  	print_log "Restoring $branch"
-  	(( quiet )) || print_log "git switch ${quiet:+--quiet }-C $branch $BACKUP_PREFIX/$branch"
+	for branch in $branches; do
+		print_log "Restoring $branch"
+		(( quiet )) || print_log "git switch ${quiet:+--quiet }-C $branch $BACKUP_PREFIX/$branch"
 
-  	if (( quiet )); then
-  		git switch --quiet -C $branch $BACKUP_PREFIX/$branch
-  	else
-  		git switch -C $branch $BACKUP_PREFIX/$branch
-  	fi
-  done
+		if (( quiet )); then
+			git switch --quiet -C $branch $BACKUP_PREFIX/$branch
+		else
+			git switch -C $branch $BACKUP_PREFIX/$branch
+		fi
+	done
 
-  clean
+	clean
 }
 
 warnings() {
@@ -536,53 +536,53 @@ warnings() {
 }
 
 write_rebase_todos() {
-  local branch
-  local branch_value
-  local -a branch_values
-  local the_exit_code
-  local upstream
-  local upstream_path
-  local -a upstream_paths
+	local branch
+	local branch_value
+	local -a branch_values
+	local the_exit_code
+	local upstream
+	local upstream_path
+	local -a upstream_paths
 
-  upstream_paths=( ${(f)"$(yq r --stripComments --printMode p $file 'rebase.*')"} )
-  for upstream_path in $upstream_paths; do
-    branch_values=( ${(f)"$(yq r --stripComments $file $upstream_path)"} )
-    upstream=${upstream_path#rebase.}
-    for branch_value in $branch_values; do
-      branch=${branch_value#- }
-      add_todo "rebase ${upstream_path#rebase.} $branch"
-    done
-  done
+	upstream_paths=( ${(f)"$(yq r --stripComments --printMode p $file 'rebase.*')"} )
+	for upstream_path in $upstream_paths; do
+		branch_values=( ${(f)"$(yq r --stripComments $file $upstream_path)"} )
+		upstream=${upstream_path#rebase.}
+		for branch_value in $branch_values; do
+			branch=${branch_value#- }
+			add_todo "rebase ${upstream_path#rebase.} $branch"
+		done
+	done
 }
 
 write_staging_todos() {
-  local branch
-  local branch_path
-  local -a branch_paths
-  local commit
-  local -a commits
-  local start_point
-  local start_point_path
-  local -a start_point_paths
+	local branch
+	local branch_path
+	local -a branch_paths
+	local commit
+	local -a commits
+	local start_point
+	local start_point_path
+	local -a start_point_paths
 
-  start_point_paths=( ${(f)"$(yq r --stripComments --printMode p $file 'stage.*')"} )
+	start_point_paths=( ${(f)"$(yq r --stripComments --printMode p $file 'stage.*')"} )
 
-  for start_point_path in $start_point_paths; do
-    start_point=${start_point_path#stage.}
-    branch_paths=( ${(f)"$(yq r --stripComments --printMode p $file $start_point_path.\*)"} )
+	for start_point_path in $start_point_paths; do
+		start_point=${start_point_path#stage.}
+		branch_paths=( ${(f)"$(yq r --stripComments --printMode p $file $start_point_path.\*)"} )
 
-    for branch_path in $branch_paths; do
-      branch=${branch_path#$start_point_path.}
-      commits=( ${(f)"$(yq r $file $branch_path.\*)"} )
+		for branch_path in $branch_paths; do
+			branch=${branch_path#$start_point_path.}
+			commits=( ${(f)"$(yq r $file $branch_path.\*)"} )
 			add_todo "stage-start $branch $start_point"
 
-      for commit in $commits; do
-      	add_todo "merge $commit $branch"
-      done
+			for commit in $commits; do
+				add_todo "merge $commit $branch"
+			done
 
-      add_todo "stage-end $branch"
-    done
-  done
+			add_todo "stage-end $branch"
+		done
+	done
 }
 
 emulate -L zsh
@@ -591,8 +591,8 @@ emulate -L zsh
 
 root=$(git rev-parse --show-toplevel 2>/dev/null)
 if [[ -z $root ]]; then
-  print_log "Not a Git repo"
-  return
+	print_log "Not a Git repo"
+	return
 fi
 
 readonly BACKUP_PREFIX="git-renew"
@@ -619,12 +619,12 @@ queue_stages=1
 queue_rebases=1
 
 if ! (( ${+NO_COLOR} )); then
-  autoload -U colors && colors
-  color+=(
-  	[error]="%F{red}"
-  	[success]="%F{green}"
-  	[log]="%F{blue}"
-  	[warning]="%F{yellow}"
+	autoload -U colors && colors
+	color+=(
+		[error]="%F{red}"
+		[success]="%F{green}"
+		[log]="%F{blue}"
+		[warning]="%F{yellow}"
 	)
 fi
 
