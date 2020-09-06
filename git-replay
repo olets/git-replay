@@ -71,7 +71,7 @@ __git_replay_backup_delete() {
 	if (( quiet )); then
 		git branch --quiet -D $branches
 	else
-		__git_replay_print_log "git branch --quiet -D $branches"
+		'builtin' 'print' "git branch --quiet -D $branches"
 		git branch -D $branches
 	fi
 }
@@ -91,7 +91,7 @@ __git_replay_backup_restore() {
 		if (( quiet )); then
 			git switch --quiet -C $branch $BACKUP_PREFIX/$branch
 		else
-			__git_replay_print_log "git switch -C $branch $BACKUP_PREFIX/$branch"
+			'builtin' 'print' "git switch -C $branch $BACKUP_PREFIX/$branch"
 			git switch -C $branch $BACKUP_PREFIX/$branch
 		fi
 	done
@@ -214,7 +214,7 @@ __git_replay_do_todos() {
 						git merge --quiet --rerere-autoupdate --no-ff --no-edit $commit
 						the_exit_code=$?
 					else
-						__git_replay_print_log "git merge --rerere-autoupdate --no-ff --no-edit $commit"
+						'builtin' 'print' "git merge --rerere-autoupdate --no-ff --no-edit $commit"
 						git merge --rerere-autoupdate --no-ff --no-edit $commit
 						the_exit_code=$?
 					fi
@@ -254,7 +254,7 @@ __git_replay_do_todos() {
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
-							__git_replay_print_log "git branch --force git-renew/$branch $branch"
+							'builtin' 'print' "git branch --force git-renew/$branch $branch"
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
@@ -267,7 +267,7 @@ __git_replay_do_todos() {
 						git rebase --quiet --rerere-autoupdate $upstream $branch
 						the_exit_code=$?
 					else
-						__git_replay_print_log "git rebase --rerere-autoupdate $upstream $branch"
+						'builtin' 'print' "git rebase --rerere-autoupdate $upstream $branch"
 						git rebase --rerere-autoupdate $upstream $branch
 						the_exit_code=$?
 					fi
@@ -294,7 +294,7 @@ __git_replay_do_todos() {
 				fi
 
 				if ! (( dry_run )); then
-					(( quiet )) || __git_replay_print_log "git rerere"
+					(( quiet )) || 'builtin' 'print' "git rerere"
 					git rerere
 
 					__git_replay_rebase_continue 0 $upstream $branch
@@ -325,7 +325,7 @@ __git_replay_do_todos() {
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
-							__git_replay_print_log "git branch --force git-renew/$branch $branch"
+							'builtin' 'print' "git branch --force git-renew/$branch $branch"
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
@@ -338,7 +338,7 @@ __git_replay_do_todos() {
 						git rebase --quiet --rerere-autoupdate --onto $newbase $upstream $branch
 						the_exit_code=$?
 					else
-						__git_replay_print_log "git rebase --rerere-autoupdate --onto $newbase $upstream $branch"
+						'builtin' 'print' "git rebase --rerere-autoupdate --onto $newbase $upstream $branch"
 						git rebase --rerere-autoupdate --onto $newbase $upstream $branch
 						the_exit_code=$?
 					fi
@@ -370,7 +370,7 @@ __git_replay_do_todos() {
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
-							__git_replay_print_log "git branch --force git-renew/$branch $branch"
+							'builtin' 'print' "git branch --force git-renew/$branch $branch"
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
@@ -382,7 +382,7 @@ __git_replay_do_todos() {
 					if (( quiet )); then
 						git switch --quiet -C $branch $start_point || return
 					else
-						__git_replay_print_log "git switch -C $branch $start_point"
+						'builtin' 'print' "git switch -C $branch $start_point"
 						git switch -C $branch $start_point || return
 					fi
 				fi
@@ -561,11 +561,11 @@ __git_replay_merge_continue() {
 
 	if [[ -n $conflicted_files ]]; then
 		__git_replay_print_log "Adding rerere-resolved conflicted files"
-		(( quiet )) || __git_replay_print_log "git add $conflicted_files"
+		(( quiet )) || 'builtin' 'print' "git add $conflicted_files"
 		git add $conflicted_files
 	fi
 
-	(( quiet )) || __git_replay_print_log "git commit --no-edit"
+	(( quiet )) || 'builtin' 'print' "git commit --no-edit"
 	git commit --no-edit || __git_replay_print_error "Cannot continue"
 }
 
@@ -612,11 +612,11 @@ __git_replay_rebase_continue() {
 
 	if [[ -n $conflicted_files ]]; then
 		__git_replay_print_log "Adding rerere-resolved conflicted files"
-		(( quiet )) || __git_replay_print_log "git add $conflicted_files"
+		(( quiet )) || 'builtin' 'print' "git add $conflicted_files"
 		git add $conflicted_files
 	fi
 
-	(( quiet )) || __git_replay_print_log "git commit --no-edit && git rebase --continue"
+	(( quiet )) || 'builtin' 'print' "git commit --no-edit && git rebase --continue"
 	git commit --no-edit || __git_replay_print_error "Cannot continue"
 	git rebase --continue || __git_replay_rebase_continue $? $upstream $branch $newbase
 }
