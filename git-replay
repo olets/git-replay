@@ -226,6 +226,12 @@ print_warning() {
 main() {
 	while (( $# )); do
 		case $1 in
+			--continue)
+				[[ -f $todo_path ]] || print_error "fatal: No replay in progress?"
+				queue_rebases=0
+				queue_stages=0
+				shift
+				;;
 			--back-up)
 				back_up=1
 				shift
@@ -274,10 +280,12 @@ main() {
     print_error "Could not find the file $file"
   fi
 
-	(( stage_only )) || write_rebase_todos
-	(( rebase_only )) || write_staging_todos
+	mkdir -p $todo_dir
+	touch $todo_path
+
 	(( queue_rebases )) && write_rebase_todos
 	(( queue_stages )) && write_staging_todos
+
 	do_todos
 
 	print_log git-replay completed
@@ -382,8 +390,6 @@ mkdir -p ${TMPDIR:-/tmp/}git-replay
 
 todo_dir=$root/.git/replay
 todo_path=${todo_dir}/git-replay-todos
-mkdir -p $todo_dir
-touch $todo_path
 
 file=$root/git-replay.yaml
 
