@@ -62,7 +62,7 @@ complete_merge() {
   fi
 
   (( quiet )) || print_log "git commit --no-edit"
-  git commit --no-edit || complete_merge $commit $branch $?
+  git commit --no-edit || print_error "Cannot continue"
 }
 
 complete_rebase() {
@@ -98,7 +98,8 @@ complete_rebase() {
     git add $conflicted_files
   fi
 
-  (( quiet )) || print_log "git rebase --continue"
+  (( quiet )) || print_log "git commit --no-edit && git rebase --continue"
+  git commit --no-edit || print_error "Cannot continue"
   git rebase --continue || complete_rebase $upstream $branch $?
 }
 
