@@ -20,6 +20,32 @@ abort() {
 	rm -rf $dir
 }
 
+add_rebase() {
+	local branch
+	local upstream
+
+	[[ $# < 2 ]] && print_error "Requires two arguments (upstream and branch)"
+
+	branch=$2
+	upstream=$1
+
+	yq w -i $file "rebase.${upstream}[+]" $branch
+}
+
+add_stage() {
+	local branch
+	local upstream
+	local start_point
+
+	[[ $# < 3 ]] && print_error "Requires three arguments (starting point, upstream, and branch)"
+
+	branch=$3
+	start_point=$1
+	upstream=$2
+
+	yq w -i $file "stage.$start_point.${upstream}[+]" $branch
+}
+
 add_todo() {
 	echo $1 >> $todo_path
 	# echo $1
@@ -341,6 +367,25 @@ main() {
 			--quieter)
 				quieter=1
 				shift
+				;;
+			add)
+				shift
+				case $1 in
+					rebase)
+						shift
+						add_rebase $@
+						return
+						;;
+					stage)
+						shift
+						add_stage $@
+						return
+						;;
+					*)
+						print_error "git-replay 'add' requires either 'rebase' or 'stage'"
+						return
+						;;
+				esac
 				;;
 			clean)
 				clean
