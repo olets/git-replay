@@ -28,6 +28,70 @@ clean() {
 	fi
 }
 
+complete_merge() {
+	local -i the_exit_code
+
+	the_exit_code=$1
+
+	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
+		print_error "Cannot continue"
+	fi
+
+	if [[ -n $(git rerere remaining) ]]; then
+		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
+		echo "merge-continue $commit $branch" > $todos_updated
+		cat $todo_path >> $todos_updated
+		mv $todos_updated $todo_path
+
+		print_error "Resolve conflicts, then run \`git replay --continue'"
+	fi
+
+	print_log "All conflicts resolved by git-rerere"
+
+	conflicted_files=$(git diff --name-only --diff-filter=U)
+
+  if [[ -n $conflicted_files ]]; then
+    print_log "Adding rerere-resolved conflicted files"
+    (( quiet )) || print_log "git add $conflicted_files"
+    git add $conflicted_files
+  fi
+
+  (( quiet )) || print_log "git commit --no-edit"
+  git commit --no-edit || complete_merge $?
+}
+
+complete_rebase() {
+	local -i the_exit_code
+
+	the_exit_code=$1
+
+	if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
+		print_error "Cannot continue"
+	fi
+
+	if [[ -n $(git rerere remaining) ]]; then
+		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
+		echo "rebase-continue $branch $upstream" > $todos_updated
+		cat $todo_path >> $todos_updated
+		mv $todos_updated $todo_path
+
+		print_error "Resolve conflicts, then run \`git replay --continue'"
+	fi
+
+	print_log "All conflicts resolved by git-rerere"
+
+	conflicted_files=$(git diff --name-only --diff-filter=U)
+
+  if [[ -n $conflicted_files ]]; then
+    print_log "Adding rerere-resolved conflicted files"
+    (( quiet )) || print_log "git add $conflicted_files"
+    git add $conflicted_files
+  fi
+
+  (( quiet )) || print_log "git rebase --continue"
+  git rebase --continue || complete_rebase $?
+}
+
 do_todos() {
 	local cmd
 	local -a cmd_words
@@ -64,27 +128,24 @@ do_todos() {
 					fi
 		    fi
 
-				if (( the_exit_code )); then
-					# set -x
-					if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
-						print_error "Cannot continue"
-					fi
+				(( the_exit_code )) && complete_merge $the_exit_code
+				;;
+			merge-continue)
+				local branch
+				local commit
+				local -i the_exit_code
 
-					if [[ -n $(git rerere remaining) ]]; then
-						print_error "Resolve conflicts, then run \`git rerere && git merge --abort && git replay'"
-					fi
+				commit=$1
+				branch=$2
 
-					conflicted_files=$(git diff --name-only --diff-filter=U)
+				print_log "Continuing merging $commit into $branch"
+				git rerere && complete_merge $the_exit_code
 
-			    if [[ -n $conflicted_files ]]; then
-				    print_log "Adding rerere-resolved conflicted files"
-				    (( quiet )) || print_log "git add $conflicted_files"
-			      git add $conflicted_files
-			    fi
+	      local message
+			  local remote_sha
+			  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
 
-			    # (( quiet )) || print_log "git commit --no-edit"
-			    git commit --no-edit
-		    fi
+				[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
 				;;
 			rebase)
 				local branch
@@ -120,26 +181,23 @@ do_todos() {
 					fi
 	      fi
 
-				if (( the_exit_code )); then
-					if [[ $the_exit_code == 128 || ! $(git config rerere.enabled) == true ]]; then
-						print_error "Cannot continue"
-					fi
+				(( the_exit_code )) && complete_rebase $the_exit_code
 
-					if [[ -n $(git rerere remaining) ]]; then
-						print_error "Resolve conflicts, then run \`git rerere && git rebase --abort && git replay'"
-					fi
+	      local message
+			  local remote_sha
+			  remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
 
-					conflicted_files=$(git diff --name-only --diff-filter=U)
+				[[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]] && print_warning "$branch has diverged from its upstream"
+				;;
+			rebase-continue)
+				local branch
+				local upstream
 
-			    if [[ -n $conflicted_files ]]; then
-				    print_log "Adding rerere-resolved conflicted files"
-				    (( quiet )) || print_log "git add $conflicted_files"
-			      git add $conflicted_files
-			    fi
+				branch=$1
+				upstream=$2
 
-			    (( quiet )) || print_log "git rebase --continue"
-			    git rebase --continue || return
-		    fi
+				print_log "Continuing rebasing $branch off $upstream"
+				git rerere && complete_rebase
 
 	      local message
 			  local remote_sha
