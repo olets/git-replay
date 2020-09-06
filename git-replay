@@ -71,7 +71,7 @@ __git_replay_backup_delete() {
 	if (( quiet )); then
 		git branch --quiet -D $branches
 	else
-		__git_replay_print_log "git branch ${quiet:+--quiet }-D $branches"
+		__git_replay_print_log "git branch --quiet -D $branches"
 		git branch -D $branches
 	fi
 }
@@ -87,11 +87,11 @@ __git_replay_backup_restore() {
 
 	for branch in $branches; do
 		__git_replay_print_log "Restoring $branch"
-		(( quiet )) || __git_replay_print_log "git switch ${quiet:+--quiet }-C $branch $BACKUP_PREFIX/$branch"
 
 		if (( quiet )); then
 			git switch --quiet -C $branch $BACKUP_PREFIX/$branch
 		else
+			__git_replay_print_log "git switch -C $branch $BACKUP_PREFIX/$branch"
 			git switch -C $branch $BACKUP_PREFIX/$branch
 		fi
 	done
@@ -208,13 +208,13 @@ __git_replay_do_todos() {
 				'builtin' 'echo' merge > $action_path
 
 				__git_replay_print_log "Merging $commit into $branch"
-				(( quiet )) || __git_replay_print_log "git merge ${quiet:+"--quiet "}--rerere-autoupdate --no-ff --no-edit $commit"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
 						git merge --quiet --rerere-autoupdate --no-ff --no-edit $commit
 						the_exit_code=$?
 					else
+						__git_replay_print_log "git merge --rerere-autoupdate --no-ff --no-edit $commit"
 						git merge --rerere-autoupdate --no-ff --no-edit $commit
 						the_exit_code=$?
 					fi
@@ -249,25 +249,25 @@ __git_replay_do_todos() {
 
 				if (( back_up )); then
 					__git_replay_print_log "Backing up $branch"
-					(( quiet )) || __git_replay_print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
 					if ! (( dry_run )); then
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
+							__git_replay_print_log "git branch --force git-renew/$branch $branch"
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
 				fi
 
 				__git_replay_print_log "Rebasing $branch off $upstream"
-				(( quiet )) || __git_replay_print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate $upstream $branch"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
 						git rebase --quiet --rerere-autoupdate $upstream $branch
 						the_exit_code=$?
 					else
+						__git_replay_print_log "git rebase --rerere-autoupdate $upstream $branch"
 						git rebase --rerere-autoupdate $upstream $branch
 						the_exit_code=$?
 					fi
@@ -293,14 +293,9 @@ __git_replay_do_todos() {
 					__git_replay_print_log "Continuing rebasing $branch off $upstream"
 				fi
 
-				(( quiet )) || __git_replay_print_log "git rerere"
-
 				if ! (( dry_run )); then
-					if (( quiet )); then
-						git rerere 1>/dev/null
-					else
-						git rerere
-					fi
+					(( quiet )) || __git_replay_print_log "git rerere"
+					git rerere
 
 					__git_replay_rebase_continue 0 $upstream $branch
 					set -x
@@ -325,25 +320,25 @@ __git_replay_do_todos() {
 
 				if (( back_up )); then
 					__git_replay_print_log "Backing up $branch"
-					(( quiet )) || __git_replay_print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
 					if ! (( dry_run )); then
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
+							__git_replay_print_log "git branch --force git-renew/$branch $branch"
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
 				fi
 
 				__git_replay_print_log "Rebasing $branch onto $newbase from $upstream"
-				(( quiet )) || __git_replay_print_log "git rebase ${quiet:+"--quiet "}--rerere-autoupdate --onto $newbase $upstream $branch"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
 						git rebase --quiet --rerere-autoupdate --onto $newbase $upstream $branch
 						the_exit_code=$?
 					else
+						__git_replay_print_log "git rebase --rerere-autoupdate --onto $newbase $upstream $branch"
 						git rebase --rerere-autoupdate --onto $newbase $upstream $branch
 						the_exit_code=$?
 					fi
@@ -370,24 +365,24 @@ __git_replay_do_todos() {
 
 				if (( back_up )); then
 					__git_replay_print_log "Backing up $branch"
-					(( quiet )) || __git_replay_print_log "git branch ${quiet:+"--quiet "}--force git-renew/$branch $branch"
 
 					if ! (( dry_run )); then
 						if (( quiet )); then
 							git branch --quiet --force git-renew/$branch $branch || return
 						else
+							__git_replay_print_log "git branch --force git-renew/$branch $branch"
 							git branch --force git-renew/$branch $branch || return
 						fi
 					fi
 				fi
 
 				__git_replay_print_log "Resetting $branch to $start_point"
-				(( quiet )) || __git_replay_print_log "git switch ${quiet:+"--quiet "}-C $branch $start_point"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
 						git switch --quiet -C $branch $start_point || return
 					else
+						__git_replay_print_log "git switch -C $branch $start_point"
 						git switch -C $branch $start_point || return
 					fi
 				fi
@@ -742,7 +737,7 @@ file=$root/git-replay.yaml
 'builtin' 'typeset' -i queue_rebases
 'builtin' 'typeset' -i queue_rebase_ontos
 'builtin' 'typeset' -i queue_stages
-local quiet
+'builtin' 'typeset' -i quiet
 'builtin' 'typeset' -i quieter
 'builtin' 'typeset' -a __git_replay_warnings
 
