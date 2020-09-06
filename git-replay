@@ -142,6 +142,48 @@ complete_rebase() {
   git rebase --continue || complete_rebase $upstream $branch $?
 }
 
+delete_rebase() {
+	local branch
+	local upstream
+
+	(( $# )) || print_error "Requires one to two arguments (upstream, branch)"
+
+	branch=$2
+	upstream=$1
+
+	if [[ -n $branch ]]; then
+		yq d -i $file rebase.$upstream.$branch
+		[[ -z $(yq r $file rebase.$upstream.\*) ]] && yq d -i $file rebase.$upstream
+	else
+		yq d -i $file rebase.$upstream
+	fi
+}
+
+delete_stage() {
+	local branch
+	local start_point
+	local upstream
+
+	(( $# )) || print_error "Requires one to three arguments (starting point, upstream, and branch)"
+
+	branch=$3
+	start_point=$1
+	upstream=$2
+
+	if [[ -n $branch ]]; then
+		yq d -i $file stage.$start_point.$upstream.$branch
+
+		[[ -z $(yq r $file stage.$start_point.$upstream.\*) ]] && yq d -i $file stage.$start_point.$upstream
+		[[ -z $(yq r $file stage.$start_point.\*) ]] && yq d -i $file stage.$start_point
+	elif [[ -n $upstream ]]; then
+		yq d -i $file stage.$start_point.$upstream
+
+		[[ -z $(yq r $file stage.$start_point.\*) ]] && yq d -i $file stage.$start_point
+	else
+		yq d -i $file stage.$start_point
+	fi
+}
+
 diverged(){
   local branch
   local remote_sha
@@ -389,6 +431,23 @@ main() {
 				;;
 			clean)
 				clean
+				return
+				;;
+			delete)
+				shift
+				case $1 in
+					rebase)
+						shift
+						delete_rebase $@
+						;;
+					stage)
+						shift
+						delete_stage $@
+						;;
+					*)
+						print_error "git-replay 'delete' requires either 'rebase' or 'stage'"
+						;;
+				esac
 				return
 				;;
 			rebase)
