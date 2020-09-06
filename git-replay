@@ -307,18 +307,6 @@ print_error() {
   exit 1
 }
 
-print_log() {
-  (( quieter )) || print -P "$color[log]$@%f"
-}
-
-print_success() {
-  (( quieter )) || print -P "$color[success]$@%f"
-}
-
-print_warning() {
-  (( quieter )) || print -P "$color[warning]$@%f"
-}
-
 main() {
 	while (( $# )); do
 		case $1 in
@@ -391,6 +379,18 @@ main() {
 	warnings && rm $warning_path
 
 	[[ -f $todo_path || -f $warning_path ]] || abort
+}
+
+print_log() {
+  (( quieter )) || print -P "$color[log]$@%f"
+}
+
+print_success() {
+  (( quieter )) || print -P "$color[success]$@%f"
+}
+
+print_warning() {
+  (( quieter )) || print -P "$color[warning]$@%f"
 }
 
 restore_backup() {
