@@ -177,7 +177,7 @@ __git_replay_diverged(){
 		mkdir -p $dir
 		touch $warning_path
 
-		'builtin' 'echo' "$branch has __git_replay_diverged from its upstream" >> $warning_path
+		'builtin' 'echo' "$branch has diverged from its upstream" >> $warning_path
 	fi
 }
 
