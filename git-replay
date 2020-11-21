@@ -389,6 +389,7 @@ __git_replay_print_error() {
 }
 
 __git_replay_main() {
+	local -i continue
 	local -i queue_rebases
 	local -i queue_rebase_ontos
 	local -i queue_stages
@@ -406,6 +407,7 @@ __git_replay_main() {
 				;;
 			--continue)
 				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
+				continue=1
 				queue_rebases=0
 				queue_stages=0
 				shift
@@ -511,6 +513,10 @@ __git_replay_main() {
 		__git_replay_print_error "Could not find the file $file"
 	fi
 
+	if [[ -f $todo_path ]] && ! (( continue )); then
+		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort)\nIf that is not the case, please\n        rm \".git/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
+	fi
+
 	mkdir -p $dir
 	touch $todo_path
 
@@ -526,6 +532,8 @@ __git_replay_main() {
 		'command' 'sed' '1d' $todo_path > $todos_updated
 		'command' 'mv' $todos_updated $todo_path
 	done
+
+	rm $todo_path
 
 	__git_replay_print_log Replay complete
 	__git_replay_warnings && rm $warning_path
