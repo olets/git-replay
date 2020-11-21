@@ -728,7 +728,7 @@ mkdir -p ${TMPDIR:-/tmp/}git-replay
 
 dir=$root/.git/replay
 todo_path=${dir}/git-replay-todos
-warning_path=${dir}/git-replay-__git_replay_warnings
+warning_path=${dir}/git-replay-warnings
 action_path=${dir}/git-replay-current-action
 
 file=$root/git-replay.yaml
