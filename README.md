@@ -119,7 +119,9 @@ git replay delete stage <start-point> [<upstream> [<branch>]]
 
 `git-replay` uses a YAML config file, so editing the file directly is a good experience. But there is a CLI too.
 
-`git replay delete rebase <upstream>` deletes all configured rebases off `<upstream>`.
+`git replay delete rebase <upstream>` deletes all configured `rebase`s off `<upstream>`.
+
+`git replay delete rebase <upstream> <branch>` deletes the configuration for `git rebase <upstream> <branch>`.
 
 `git replay delete rebase-onto <newbase>` deletes all configured `rebase --onto`s with the `newbase` `<newbase>`.
 
