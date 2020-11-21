@@ -389,7 +389,14 @@ __git_replay_print_error() {
 }
 
 __git_replay_main() {
+	local -i queue_rebases
+	local -i queue_rebase_ontos
+	local -i queue_stages
 	local -a todos
+
+	queue_rebases=1
+	queue_rebase_ontos=1
+	queue_stages=1
 
 	while (( $# )); do
 		case $1 in
@@ -729,16 +736,9 @@ file=$root/git-replay.yaml
 'builtin' 'typeset' -i back_up
 'builtin' 'typeset' -A color
 'builtin' 'typeset' -i dry_run
-'builtin' 'typeset' -i queue_rebases
-'builtin' 'typeset' -i queue_rebase_ontos
-'builtin' 'typeset' -i queue_stages
 'builtin' 'typeset' -i quiet
 'builtin' 'typeset' -i quieter
 'builtin' 'typeset' -a __git_replay_warnings
-
-queue_rebases=1
-queue_rebase_ontos=1
-queue_stages=1
 
 if ! (( ${+NO_COLOR} )); then
 	autoload -U colors && colors
