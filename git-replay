@@ -78,12 +78,19 @@ __git_replay_backup_delete() {
 
 __git_replay_backup_restore() {
 	local branch
-	local -a branch_paths
+	local -a branches
+	local -a stage_branch_paths
+
+	stage_branch_paths=( ${(f)"$(yq r gitignore/git-replay.yaml --printMode p 'stage.*.*')"} )
 
 	# rebased branches
 	branches=( ${(f)"$('command' 'yq' r $file 'rebase.*.*')"} )
+	# rebase-onto'd branches
+	branches+=( ${(f)"$('command' 'yq' r $file 'rebase-onto.*.*.*')"} )
 	# stage branches
-	branches+=( ${(f)"$('command' 'yq' r $file 'stage.*.*.*')"} )
+	for branch in $stage_branch_paths; do
+		branches+=( ${branch##*.} )
+	done
 
 	for branch in $branches; do
 		__git_replay_print_log "Restoring $branch"
