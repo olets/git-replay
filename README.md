@@ -62,6 +62,7 @@ brew install olets/tap/git-replay
 ## Requirements
 
 - Git
+- [yq](https://github.com/mikefarah/yq)
 - zsh (does not need to be your default interactive shell, just needs to be installed)
 
 ## Usage
