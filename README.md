@@ -73,7 +73,9 @@ If `--file <config file path>` is used, it must come before `--abort`. No other 
 
 Continues the in-progress replay.
 
-Any options must come before `--continue`.
+**--skip**
+
+Skips the current action and continues the in-progress replay.
 
 **add**
 

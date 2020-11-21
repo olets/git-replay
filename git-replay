@@ -435,6 +435,14 @@ __git_replay_main() {
 				quieter=1
 				shift
 				;;
+			--skip)
+				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
+				continue=1
+				queue_rebases=0
+				queue_stages=0
+				__git_replay_pop_todo
+				shift
+				;;
 			add)
 				shift
 				case $1 in
@@ -514,7 +522,7 @@ __git_replay_main() {
 	fi
 
 	if [[ -f $todo_path ]] && ! (( continue )); then
-		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort)\nIf that is not the case, please\n        rm \".git/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
+		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort | --skip)\nIf that is not the case, please\n        rm \".git/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
 	fi
 
 	mkdir -p $dir
@@ -527,12 +535,10 @@ __git_replay_main() {
 	todos=( ${(f)"$('command' 'cat' $todo_path)"} )
 	for todo in $todos; do
 		__git_replay_do_todo $todo
-
-		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
-		'command' 'sed' '1d' $todo_path > $todos_updated
-		'command' 'mv' $todos_updated $todo_path
+		__git_replay_pop_todo
 	done
 
+	__git_replay_pop_todo
 	rm $todo_path
 
 	__git_replay_print_log Replay complete
@@ -576,6 +582,12 @@ __git_replay_merge_continue() {
 
 	(( quiet )) || 'builtin' 'print' "git commit --no-edit"
 	git commit --no-edit || __git_replay_print_error "Cannot continue"
+}
+
+__git_replay_pop_todo() {
+	todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
+	'command' 'sed' '1d' $todo_path > $todos_updated
+	'command' 'mv' $todos_updated $todo_path
 }
 
 __git_replay_print_log() {
