@@ -128,7 +128,7 @@ git replay add stage <start-point> <upstream> <branch>
 git replay backup-delete
 ```
 
-Delete all branches with the prefix `git-replay/`.
+Delete all backup branches. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
 
 **backup-restore**
 
@@ -137,6 +137,8 @@ git replay backup-restore
 ```
 
 Reset every configured branch to its `git-replay/`-prefixed backup, and then delete all backups.
+
+For every backup branch, reset the current branch to the backup and then delete the backup branch. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
 
 **delete**
 

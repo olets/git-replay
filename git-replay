@@ -61,45 +61,56 @@ __git_replay_add_stage() {
 }
 
 __git_replay_backup_delete() {
-	local -a branches
+	local branch
+	local backup_branch
+	local -a backup_branches
 
-	branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
-	[[ -z $branches ]] && __git_replay_print_warning "No backup found" && return
+	backup_branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
+	[[ -z $backup_branches ]] && __git_replay_print_warning "No backup branches found" && return
 
-	__git_replay_print_log "Deleting all backups"
+	__git_replay_print_log "Deleting backups"
 
-	if (( quiet )); then
-		git branch --quiet -D $branches
-	else
-		'builtin' 'print' "git branch --quiet -D $branches"
-		git branch -D $branches
-	fi
+	for backup_branch in $backup_branches; do
+		branch=${backup_branch#$BACKUP_PREFIX/}
+
+		if ! git show-ref --verify --quiet refs/heads/$branch; then
+			mkdir -p $dir
+			touch $warning_path
+
+			'builtin' 'echo' "No branch \`$branch\` found. Not deleting the backup in case it is needed.\nTo delete the backup, run\n        git branch -D $backup_branch" >> $warning_path
+		else
+			if (( quiet )); then
+				git branch --quiet -D $backup_branch
+			else
+				'builtin' 'print' "git branch --quiet -D $backup_branch"
+				git branch -D $backup_branch
+			fi
+		fi
+	done
 }
 
 __git_replay_backup_restore() {
 	local branch
-	local -a branches
-	local -a stage_branch_paths
+	local backup_branch
+	local -a backup_branches
 
-	stage_branch_paths=( ${(f)"$(yq r gitignore/git-replay.yaml --printMode p 'stage.*.*')"} )
+	backup_branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
+	[[ -z $backup_branches ]] && __git_replay_print_warning "No backup branches found" && return
 
-	# rebased branches
-	branches=( ${(f)"$('command' 'yq' r $file 'rebase.*.*')"} )
-	# rebase-onto'd branches
-	branches+=( ${(f)"$('command' 'yq' r $file 'rebase-onto.*.*.*')"} )
-	# stage branches
-	for branch in $stage_branch_paths; do
-		branches+=( ${branch##*.} )
-	done
+	__git_replay_print_log "Restoring backed up branches"
 
-	for branch in $branches; do
-		__git_replay_print_log "Restoring $branch"
+	for backup_branch in $backup_branches; do
+		branch=${backup_branch#$BACKUP_PREFIX/}
 
-		if (( quiet )); then
-			git checkout --quiet -B $branch $BACKUP_PREFIX/$branch
-		else
-			'builtin' 'print' "git checkout -B $branch $BACKUP_PREFIX/$branch"
-			git checkout -B $branch $BACKUP_PREFIX/$branch
+		if git show-ref --verify --quiet refs/heads/$branch; then
+			__git_replay_print_log "Restoring $branch"
+
+			if (( quiet )); then
+				git checkout --quiet -B $branch $backup_branch
+			else
+				'builtin' 'print' "git checkout -B $branch $backup_branch"
+				git checkout -B $branch $backup_branch
+			fi
 		fi
 	done
 
@@ -476,10 +487,12 @@ __git_replay_main() {
 				;;
 			backup-delete)
 				__git_replay_backup_delete
+				__git_replay_warnings && rm $warning_path
 				return
 				;;
 			backup-restore)
 				__git_replay_backup_restore
+				__git_replay_warnings && rm $warning_path
 				return
 				;;
 			delete)
