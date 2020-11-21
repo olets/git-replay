@@ -243,10 +243,10 @@ __git_replay_do_todo() {
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git branch --quiet --force git-renew/$branch $branch || return
+						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || return
 					else
-						'builtin' 'print' "git branch --force git-renew/$branch $branch"
-						git branch --force git-renew/$branch $branch || return
+						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
+						git branch --force $BACKUP_PREFIX/$branch $branch || return
 					fi
 				fi
 			fi
@@ -312,10 +312,10 @@ __git_replay_do_todo() {
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git branch --quiet --force git-renew/$branch $branch || return
+						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || return
 					else
-						'builtin' 'print' "git branch --force git-renew/$branch $branch"
-						git branch --force git-renew/$branch $branch || return
+						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
+						git branch --force $BACKUP_PREFIX/$branch $branch || return
 					fi
 				fi
 			fi
@@ -357,10 +357,10 @@ __git_replay_do_todo() {
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git branch --quiet --force git-renew/$branch $branch || return
+						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || return
 					else
-						'builtin' 'print' "git branch --force git-renew/$branch $branch"
-						git branch --force git-renew/$branch $branch || return
+						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
+						git branch --force $BACKUP_PREFIX/$branch $branch || return
 					fi
 				fi
 			fi
@@ -742,7 +742,7 @@ if [[ -z $root ]]; then
 	return
 fi
 
-readonly BACKUP_PREFIX="git-renew"
+readonly BACKUP_PREFIX="git-replay"
 
 mkdir -p ${TMPDIR:-/tmp/}git-replay
 
