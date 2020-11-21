@@ -181,221 +181,205 @@ __git_replay_diverged(){
 	fi
 }
 
-__git_replay_do_todos() {
-	local cmd
+__git_replay_do_todo() {
 	local -a cmd_words
-	local todo
 
-	todo=$(head -n 1 $todo_path)
+	cmd_words=( ${(z)1} )
 
-	if [[ -n $todo ]]; then
-		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
-		'command' 'sed' '1d' $todo_path > $todos_updated
-		'command' 'mv' $todos_updated $todo_path
+	case $cmd_words[1] in
+		merge)
+			local branch
+			local commit
+			local -i the_exit_code
 
-		cmd_words=( ${(z)todo} )
+			branch=$cmd_words[3]
+			commit=$cmd_words[2]
 
-		case $cmd_words[1] in
-			merge)
-				local branch
-				local commit
-				local -i the_exit_code
+			touch $action_path
+			'builtin' 'echo' merge > $action_path
 
-				branch=$cmd_words[3]
-				commit=$cmd_words[2]
+			__git_replay_print_log "Merging $commit into $branch"
 
-				touch $action_path
-				'builtin' 'echo' merge > $action_path
-
-				__git_replay_print_log "Merging $commit into $branch"
-
-				if ! (( dry_run )); then
-					if (( quiet )); then
-						git merge --quiet --rerere-autoupdate --no-ff --no-edit $commit
-						the_exit_code=$?
-					else
-						'builtin' 'print' "git merge --rerere-autoupdate --no-ff --no-edit $commit"
-						git merge --rerere-autoupdate --no-ff --no-edit $commit
-						the_exit_code=$?
-					fi
-
-					(( the_exit_code )) && __git_replay_merge_continue $commit $branch $the_exit_code
-				fi
-
-				rm $action_path
-				;;
-			merge-continue)
-				local branch
-				local commit
-
-				branch=$cmd_words[3]
-				commit=$cmd_words[2]
-
-				__git_replay_print_log "Continuing merging $commit into $branch"
-				git rerere && __git_replay_merge_continue $commit $branch
-
-				rm $action_path
-				;;
-			rebase)
-				local branch
-				local -i the_exit_code
-				local upstream
-
-				branch=$cmd_words[3]
-				upstream=$cmd_words[2]
-
-				touch $action_path
-				'builtin' 'echo' rebase > $action_path
-
-				if (( back_up )); then
-					__git_replay_print_log "Backing up $branch"
-
-					if ! (( dry_run )); then
-						if (( quiet )); then
-							git branch --quiet --force git-renew/$branch $branch || return
-						else
-							'builtin' 'print' "git branch --force git-renew/$branch $branch"
-							git branch --force git-renew/$branch $branch || return
-						fi
-					fi
-				fi
-
-				__git_replay_print_log "Rebasing $branch off $upstream"
-
-				if ! (( dry_run )); then
-					if (( quiet )); then
-						git rebase --quiet --rerere-autoupdate $upstream $branch
-						the_exit_code=$?
-					else
-						'builtin' 'print' "git rebase --rerere-autoupdate $upstream $branch"
-						git rebase --rerere-autoupdate $upstream $branch
-						the_exit_code=$?
-					fi
-
-					(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch
-					__git_replay_diverged $branch
-				fi
-
-				rm $action_path
-				;;
-			rebase-continue)
-				local branch
-				local newbase
-				local upstream
-
-				branch=$cmd_words[3]
-				newbase=$cmd_words[4]
-				upstream=$cmd_words[2]
-
-				if [[ -n $newbase ]]; then
-					__git_replay_print_log "Continuing rebasing $branch onto $newbase from $upstream"
+			if ! (( dry_run )); then
+				if (( quiet )); then
+					git merge --quiet --rerere-autoupdate --no-ff --no-edit $commit
+					the_exit_code=$?
 				else
-					__git_replay_print_log "Continuing rebasing $branch off $upstream"
+					'builtin' 'print' "git merge --rerere-autoupdate --no-ff --no-edit $commit"
+					git merge --rerere-autoupdate --no-ff --no-edit $commit
+					the_exit_code=$?
 				fi
 
-				if ! (( dry_run )); then
-					(( quiet )) || 'builtin' 'print' "git rerere"
-					git rerere
+				(( the_exit_code )) && __git_replay_merge_continue $commit $branch $the_exit_code
+			fi
 
-					__git_replay_rebase_continue 0 $upstream $branch
-					set -x
-					__git_replay_diverged $branch
-					set +x
-				fi
+			rm $action_path
+			;;
+		merge-continue)
+			local branch
+			local commit
 
-				rm $action_path
-				;;
-			rebase-onto)
-				local branch
-				local -i the_exit_code
-				local newbase
-				local upstream
+			branch=$cmd_words[3]
+			commit=$cmd_words[2]
 
-				branch=$cmd_words[4]
-				newbase=$cmd_words[2]
-				upstream=$cmd_words[3]
+			__git_replay_print_log "Continuing merging $commit into $branch"
+			git rerere && __git_replay_merge_continue $commit $branch
 
-				touch $action_path
-				'builtin' 'echo' rebased > $action_path
+			rm $action_path
+			;;
+		rebase)
+			local branch
+			local -i the_exit_code
+			local upstream
 
-				if (( back_up )); then
-					__git_replay_print_log "Backing up $branch"
+			branch=$cmd_words[3]
+			upstream=$cmd_words[2]
 
-					if ! (( dry_run )); then
-						if (( quiet )); then
-							git branch --quiet --force git-renew/$branch $branch || return
-						else
-							'builtin' 'print' "git branch --force git-renew/$branch $branch"
-							git branch --force git-renew/$branch $branch || return
-						fi
-					fi
-				fi
+			touch $action_path
+			'builtin' 'echo' rebase > $action_path
 
-				__git_replay_print_log "Rebasing $branch onto $newbase from $upstream"
+			if (( back_up )); then
+				__git_replay_print_log "Backing up $branch"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git rebase --quiet --rerere-autoupdate --onto $newbase $upstream $branch
-						the_exit_code=$?
+						git branch --quiet --force git-renew/$branch $branch || return
 					else
-						'builtin' 'print' "git rebase --rerere-autoupdate --onto $newbase $upstream $branch"
-						git rebase --rerere-autoupdate --onto $newbase $upstream $branch
-						the_exit_code=$?
-					fi
-
-					(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch $newbase
-					__git_replay_diverged $branch
-				fi
-
-				rm $action_path
-				;;
-			stage-end)
-				local branch
-
-				branch=$cmd_words[2]
-
-				(( dry_run )) || __git_replay_diverged $branch
-				;;
-			stage-start)
-				local branch
-				local start_point
-
-				branch=$cmd_words[2]
-				start_point=$cmd_words[3]
-
-				if (( back_up )); then
-					__git_replay_print_log "Backing up $branch"
-
-					if ! (( dry_run )); then
-						if (( quiet )); then
-							git branch --quiet --force git-renew/$branch $branch || return
-						else
-							'builtin' 'print' "git branch --force git-renew/$branch $branch"
-							git branch --force git-renew/$branch $branch || return
-						fi
+						'builtin' 'print' "git branch --force git-renew/$branch $branch"
+						git branch --force git-renew/$branch $branch || return
 					fi
 				fi
+			fi
 
-				__git_replay_print_log "Resetting $branch to $start_point"
+			__git_replay_print_log "Rebasing $branch off $upstream"
+
+			if ! (( dry_run )); then
+				if (( quiet )); then
+					git rebase --quiet --rerere-autoupdate $upstream $branch
+					the_exit_code=$?
+				else
+					'builtin' 'print' "git rebase --rerere-autoupdate $upstream $branch"
+					git rebase --rerere-autoupdate $upstream $branch
+					the_exit_code=$?
+				fi
+
+				(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch
+				__git_replay_diverged $branch
+			fi
+
+			rm $action_path
+			;;
+		rebase-continue)
+			local branch
+			local newbase
+			local upstream
+
+			branch=$cmd_words[3]
+			newbase=$cmd_words[4]
+			upstream=$cmd_words[2]
+
+			if [[ -n $newbase ]]; then
+				__git_replay_print_log "Continuing rebasing $branch onto $newbase from $upstream"
+			else
+				__git_replay_print_log "Continuing rebasing $branch off $upstream"
+			fi
+
+			if ! (( dry_run )); then
+				(( quiet )) || 'builtin' 'print' "git rerere"
+				git rerere
+
+				__git_replay_rebase_continue 0 $upstream $branch
+				__git_replay_diverged $branch
+			fi
+
+			rm $action_path
+			;;
+		rebase-onto)
+			local branch
+			local -i the_exit_code
+			local newbase
+			local upstream
+
+			branch=$cmd_words[4]
+			newbase=$cmd_words[2]
+			upstream=$cmd_words[3]
+
+			touch $action_path
+			'builtin' 'echo' rebased > $action_path
+
+			if (( back_up )); then
+				__git_replay_print_log "Backing up $branch"
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git switch --quiet -C $branch $start_point || return
+						git branch --quiet --force git-renew/$branch $branch || return
 					else
-						'builtin' 'print' "git switch -C $branch $start_point"
-						git switch -C $branch $start_point || return
+						'builtin' 'print' "git branch --force git-renew/$branch $branch"
+						git branch --force git-renew/$branch $branch || return
 					fi
 				fi
-				;;
-			*)
-				__git_replay_print_error "git-replay can not run the todo \`$todo'"
-				;;
-		esac
+			fi
 
-		__git_replay_do_todos
-	fi
+			__git_replay_print_log "Rebasing $branch onto $newbase from $upstream"
 
-	# this end is hit many times. why??
+			if ! (( dry_run )); then
+				if (( quiet )); then
+					git rebase --quiet --rerere-autoupdate --onto $newbase $upstream $branch
+					the_exit_code=$?
+				else
+					'builtin' 'print' "git rebase --rerere-autoupdate --onto $newbase $upstream $branch"
+					git rebase --rerere-autoupdate --onto $newbase $upstream $branch
+					the_exit_code=$?
+				fi
+
+				(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch $newbase
+				__git_replay_diverged $branch
+			fi
+
+			rm $action_path
+			;;
+		stage-end)
+			local branch
+
+			branch=$cmd_words[2]
+
+			(( dry_run )) || __git_replay_diverged $branch
+			;;
+		stage-start)
+			local branch
+			local start_point
+
+			branch=$cmd_words[2]
+			start_point=$cmd_words[3]
+
+			if (( back_up )); then
+				__git_replay_print_log "Backing up $branch"
+
+				if ! (( dry_run )); then
+					if (( quiet )); then
+						git branch --quiet --force git-renew/$branch $branch || return
+					else
+						'builtin' 'print' "git branch --force git-renew/$branch $branch"
+						git branch --force git-renew/$branch $branch || return
+					fi
+				fi
+			fi
+
+			__git_replay_print_log "Resetting $branch to $start_point"
+
+			if ! (( dry_run )); then
+				if (( quiet )); then
+					git switch --quiet -C $branch $start_point || return
+				else
+					'builtin' 'print' "git switch -C $branch $start_point"
+					git switch -C $branch $start_point || return
+				fi
+			fi
+			;;
+		*)
+			__git_replay_print_error "git-replay can not run the todo \`$todo'"
+			;;
+	esac
 }
 
 __git_replay_print_error() {
@@ -405,6 +389,8 @@ __git_replay_print_error() {
 }
 
 __git_replay_main() {
+	local -a todos
+
 	while (( $# )); do
 		case $1 in
 			--abort)
@@ -525,7 +511,15 @@ __git_replay_main() {
 	(( queue_rebase_ontos )) && __git_replay_write_rebase_onto_todos
 	(( queue_stages )) && __git_replay_write_staging_todos
 
-	__git_replay_do_todos && rm $todo_path
+	todos=( ${(f)"$('command' 'cat' $todo_path)"} )
+	for todo in $todos; do
+		__git_replay_do_todo $todo
+
+		todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
+		'command' 'sed' '1d' $todo_path > $todos_updated
+		'command' 'mv' $todos_updated $todo_path
+	done
+
 	__git_replay_print_log Replay complete
 	__git_replay_warnings && rm $warning_path
 
