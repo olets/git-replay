@@ -33,7 +33,7 @@ brew install olets/tap/git-replay
 
 ## Requirements
 
-- Git ≥ 2.23 (`git-replay` uses `git-switch`)
+- Git
 - zsh (does not need to be your default interactive shell, just needs to be installed)
 
 ## Usage

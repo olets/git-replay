@@ -89,10 +89,10 @@ __git_replay_backup_restore() {
 		__git_replay_print_log "Restoring $branch"
 
 		if (( quiet )); then
-			git switch --quiet -C $branch $BACKUP_PREFIX/$branch
+			git checkout --quiet -B $branch $BACKUP_PREFIX/$branch
 		else
-			'builtin' 'print' "git switch -C $branch $BACKUP_PREFIX/$branch"
-			git switch -C $branch $BACKUP_PREFIX/$branch
+			'builtin' 'print' "git checkout -B $branch $BACKUP_PREFIX/$branch"
+			git checkout -B $branch $BACKUP_PREFIX/$branch
 		fi
 	done
 
@@ -369,10 +369,10 @@ __git_replay_do_todo() {
 
 			if ! (( dry_run )); then
 				if (( quiet )); then
-					git switch --quiet -C $branch $start_point || return
+					git checkout --quiet -B $branch $start_point || return
 				else
-					'builtin' 'print' "git switch -C $branch $start_point"
-					git switch -C $branch $start_point || return
+					'builtin' 'print' "git checkout -B $branch $start_point"
+					git checkout -B $branch $start_point || return
 				fi
 			fi
 			;;
