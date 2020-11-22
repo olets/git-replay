@@ -233,6 +233,12 @@ If you hit a conflict while replaying, resolve it and then run `git replay --con
 
 You can manage the file from the command line with `git replay add` and `git replay delete`. Editing the file directly may be an even better experience.
 
+The configuration file takes top-level objects with keys `rebase`, `rebase-onto`, and `stage`. There can be multiple of each and they can be in any order, but _actions will always be run in the following order_:
+
+1. All `rebase`s, in the order they appear in the configuration file
+1. All `rebase-onto`s, in the order they appear in the configuration file
+1. All `stage`s, in the order they appear in the configuration file
+
 ### Rebases
 
 To automate
