@@ -408,6 +408,8 @@ __git_replay_print_error() {
 
 __git_replay_main() {
 	local -i continue
+	local -i no_color
+	local opt
 	local -i queue_rebases
 	local -i queue_rebase_ontos
 	local -i queue_stages
@@ -416,6 +418,20 @@ __git_replay_main() {
 	queue_rebases=1
 	queue_rebase_ontos=1
 	queue_stages=1
+
+	for opt in $@; do
+		[[ $opt == "--no-color" ]] && no_color=1
+	done
+
+	if ! (( no_color )); then
+		autoload -U colors && colors
+		color=(
+			[error]="%F{red}"
+			[success]="%F{green}"
+			[log]="%F{blue}"
+			[warning]="%F{yellow}"
+		)
+	fi
 
 	while (( $# )); do
 		case $1 in
@@ -447,6 +463,9 @@ __git_replay_main() {
 			help)
 				'command' 'man' git-replay 2>/dev/null || 'command' 'cat' ${SOURCE_PATH}/man/git-replay.txt | 'command' 'less' -F
 				return
+				;;
+			--no-color)
+				shift
 				;;
 			-q|\
 			--quiet)
@@ -861,15 +880,5 @@ file=$root/git-replay.yaml
 'builtin' 'typeset' -i quiet
 'builtin' 'typeset' -i quieter
 'builtin' 'typeset' -a __git_replay_warnings
-
-if ! (( ${+NO_COLOR} )); then
-	autoload -U colors && colors
-	color+=(
-		[error]="%F{red}"
-		[success]="%F{green}"
-		[log]="%F{blue}"
-		[warning]="%F{yellow}"
-	)
-fi
 
 __git_replay_main $@

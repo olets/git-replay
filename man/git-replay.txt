@@ -6,39 +6,38 @@ NAME
        git-replay - automate Git rebases and stage creation
 
 SYNOPSIS
-       git replay [<file.(yaml|yml)>] [--back-up] [(--quiet | -q) | (--quieter
-       | -qq)] [--dry-run]
+       git   replay   [--file  <config  file  path>]  [--back-up]  [--dry-run]
+       [(--quiet | -q) | (--quieter | -qq)] [--no-color]
 
-       git  replay  [--file  <config  file  path>]   [--back-up]   [--dry-run]
-       [(--quiet | -q) | (--quieter | -qq)]
-
-       git  replay  backup-restore  [--file  <config  file  path>] [--back-up]
-       [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+       git replay  backup-restore  [--file  <config  file  path>]  [--back-up]
+       [--dry-run] [(--quiet | -q) | (--quieter | -qq)] [--no-color]
 
        git  replay  backup-delete  [--file  <config  file  path>]  [--back-up]
-       [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+       [--dry-run] [(--quiet | -q) | (--quieter | -qq)] [--no-color]
 
-       git  replay  add rebase <upstream> <branch> [--file <config file path>]
-       [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+       git replay add rebase <upstream> <branch> [--file <config  file  path>]
+       [--back-up]  [--dry-run]  [(--quiet  |  -q) | (--quieter | -qq)] [--no-
+       color]
 
        git replay add rebase-onto <newbase> <upstream> <branch> [--file  <con-
        fig  file path>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter |
-       -qq)]
+       -qq)] [--no-color]
 
        git replay add stage <start point> <upstream> <branch> [--file  <config
        file  path>]  [--back-up]  [--dry-run]  [(--quiet  | -q) | (--quieter |
-       -qq)]
+       -qq)] [--no-color]
 
        git replay delete rebase <upstream>  [<branch>]  [--file  <config  file
-       path>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+       path>]  [--back-up]  [--dry-run]  [(--quiet  | -q) | (--quieter | -qq)]
+       [--no-color]
 
        git replay delete rebase-onto <newbase> [<upstream> [<branch>]] [--file
-       <config file path>] [--back-up] [--dry-run] [(--quiet | -q)  |  (--qui-
-       eter | -qq)]
+       <config  file  path>] [--back-up] [--dry-run] [(--quiet | -q) | (--qui-
+       eter | -qq)] [--no-color]
 
-       git  replay  delete stage <start point> [<upstream> [<branch>]] [--file
-       <config file path>] [--back-up] [--dry-run] [(--quiet | -q)  |  (--qui-
-       eter | -qq)]
+       git replay delete stage <start point> [<upstream>  [<branch>]]  [--file
+       <config  file  path>] [--back-up] [--dry-run] [(--quiet | -q) | (--qui-
+       eter | -qq)] [--no-color]
 
        git replay (help | --help)
 
@@ -46,8 +45,8 @@ SYNOPSIS
 
 
 DESCRIPTION
-       git-replay  automate the rebasing of Git branches and creation of stage
-       branches (ie branches into which one or more feature branch  is  merged
+       git-replay automate the rebasing of Git branches and creation of  stage
+       branches  (ie  branches into which one or more feature branch is merged
        with a merge commit).
 
 
@@ -55,29 +54,20 @@ Commands
        The following commands are available:
 
 
-       o      git  replay  [<file.(yaml|yml)>]  [--back-up]  [(--quiet | -q) |
-              (--quieter | -qq)] [--dry-run]
+       o      git replay [--file <config file path>]  [--back-up]  [--dry-run]
+              [(--quiet | -q) | (--quieter | -qq)] [--no-color]
 
               Run the configured automation.
 
-              The --file option specifies the path to the  configuration  file
+              The  --file  option specifies the path to the configuration file
               (default is git-renew.yaml).
 
-              The  --back-up  option  saves  a  copy  of  every branch. Backup
+              The --back-up option  saves  a  copy  of  every  branch.  Backup
               branches are prefixed with git-replay/.
-
-              The --quiet option passes the `--quiet` flag to Git when  appli-
-              cable.
-
-              The  --quieter  option  additionally  suppresses most git-replay
-              output.
-
-              The --dry-run option logs (unless quieter is set) but  does  not
-              run commands.
 
 
        o      git  replay  backup-delete  [(--quiet | -q) | (--quieter | -qq)]
-              [--dry-run]
+              [--dry-run] [--no-color]
 
               Delete all backup branches. Backup branches are defined as those
               with  the  prefix  "git-replay/". If the backed up branch is not
@@ -85,42 +75,24 @@ Commands
               backup  branch "git-replay/x"- a warning will be printed and the
               backup branch will not be deleted.
 
-              The --quiet option passes the `--quiet` flag to Git when  appli-
-              cable.
 
-              The  --quieter  option  additionally  suppresses most git-replay
-              output.
+       o      git replay backup-restore [(--quiet | -q) | (--quieter  |  -qq)]
+              [--dry-run] [--no-color]
 
-              The --dry-run option logs (unless quieter is set) but  does  not
-              run commands.
-
-
-       o      git  replay  backup-restore [(--quiet | -q) | (--quieter | -qq)]
-              [--dry-run]
-
-              Reset  every  configured  branch  to  its   git-replay/-prefixed
+              Reset   every  configured  branch  to  its  git-replay/-prefixed
               backup, and then delete all backups.
 
-              For  every backup branch, reset the current branch to the backup
-              and then delete the backup branch. Backup branches  are  defined
-              as  those with the prefix "git-replay/." If the backed up branch
-              is not found -for example if there is no branch "x" to  go  with
-              the  backup branch "git-replay/x"- a warning will be printed and
+              For every backup branch, reset the current branch to the  backup
+              and  then  delete the backup branch. Backup branches are defined
+              as those with the prefix "git-replay/." If the backed up  branch
+              is  not  found -for example if there is no branch "x" to go with
+              the backup branch "git-replay/x"- a warning will be printed  and
               the backup branch will not be deleted.
-
-              The --quiet option passes the `--quiet` flag to Git when  appli-
-              cable.
-
-              The  --quieter  option  additionally  suppresses most git-replay
-              output.
-
-              The --dry-run option logs (unless quieter is set) but  does  not
-              run commands.
 
 
        o      git  replay  add rebase <upstream> <branch> [--file <config file
               path>] [--back-up] [--dry-run] [(--quiet | -q)  |  (--quieter  |
-              -qq)]
+              -qq)] [--no-color]
 
               Adds  to the configuration file the configuration for git rebase
               <upstream> <branch>.
@@ -128,7 +100,7 @@ Commands
 
        o      git replay add rebase-onto <newbase> <upstream> <branch> [--file
               <config  file  path>]  [--back-up] [--dry-run] [(--quiet | -q) |
-              (--quieter | -qq)]
+              (--quieter | -qq)] [--no-color]
 
               Adds to the configuration file the configuration for git  rebase
               --onto <newbase> <upstream> <branch>.
@@ -136,7 +108,7 @@ Commands
 
        o      git  replay  add stage <start point> <upstream> <branch> [--file
               <config file path>] [--back-up] [--dry-run] [(--quiet  |  -q)  |
-              (--quieter | -qq)]
+              (--quieter | -qq)] [--no-color]
 
               Adds  to the configuration file the configuration for git switch
               -C <upstream> <start point> && git merge --no-ff <branch>.
@@ -144,7 +116,7 @@ Commands
 
        o      git replay delete rebase <upstream> [<branch>]  [--file  <config
               file path>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter
-              | -qq)]
+              | -qq)] [--no-color]
 
               If <branch> is provided, deletes from the configuration file the
               configuration for git rebase <upstream> <branch>.
@@ -155,7 +127,7 @@ Commands
 
        o      git replay delete rebase-onto <newbase> [<upstream>  [<branch>]]
               [--file  <config file path>] [--back-up] [--dry-run] [(--quiet |
-              -q) | (--quieter | -qq)]
+              -q) | (--quieter | -qq)] [--no-color]
 
               If <upstream> <branch> is provided, deletes from the  configura-
               tion  file  the  configuration  for  git rebase --onto <newbase>
@@ -171,7 +143,7 @@ Commands
 
        o      git  replay  delete  stage <start point> [<upstream> [<branch>]]
               [--file <config file path>] [--back-up] [--dry-run] [(--quiet  |
-              -q) | (--quieter | -qq)]
+              -q) | (--quieter | -qq)] [--no-color]
 
               If  <upstream> <branch> is provided, deletes from the configura-
               tion file the  configuration  for  git  checkout  -B  <upstream>
@@ -193,6 +165,25 @@ Commands
        o      git replay (--version | -v)
 
               Show the current version.
+
+
+       Options:
+
+
+              o      The --no-color option disables the colorization  of  out-
+                     put.
+
+
+              o      The  --quiet option passes the `--quiet` flag to Git when
+                     applicable.
+
+
+              o      The --quieter option additionally  suppresses  most  git-
+                     replay output.
+
+
+              o      The  --dry-run  option  logs  (unless quieter is set) but
+                     does not run commands.
 
 
 Configuration
