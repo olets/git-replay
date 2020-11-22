@@ -555,7 +555,8 @@ __git_replay_main() {
 	fi
 
 	if [[ -f $todo_path ]] && ! (( continue )); then
-		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort | --skip)\nIf that is not the case, please\n        rm \".git/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
+		# This error's language follows that given by `git rebase` when a rebase is already in progress
+		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort | --skip)\nIf that is not the case, please\n        rm \".git/$dir_name/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
 	fi
 
 	mkdir -p $dir
@@ -600,7 +601,9 @@ __git_replay_merge_continue() {
 		'command' 'mv' $todos_updated $todo_path
 
 		__git_replay_diverged $branch
-		__git_replay_print_error "Resolve conflicts, then run \`git replay --continue'"
+
+		# This error's langage follows that given when `git rebase` hits a conflict.
+		__git_replay_print_error 'Resolve all conflicts manually, mark them as resolved with\n"git add/rm <conflicted_files>", then run "git replay [--file <config file>] --continue".\nYou can instead skip this replay action: run "git replay [--file <config file>] --skip".\nTo abort and get back to the state before "git replay", run "git replay --abort".'
 	fi
 
 	__git_replay_print_log "All conflicts resolved by git-rerere"
@@ -657,7 +660,9 @@ __git_replay_rebase_continue() {
 		'command' 'mv' $todos_updated $todo_path
 
 		__git_replay_diverged $branch
-		__git_replay_print_error "Resolve conflicts, then run \`git replay --continue'"
+
+		# This error's langage follows that given when `git rebase` hits a conflict.
+		__git_replay_print_error 'Resolve all conflicts manually, mark them as resolved with\n"git add/rm <conflicted_files>", then run "git replay [--file <config file>] --continue".\nYou can instead skip this replay action: run "git replay [--file <config file>] --skip".\nTo abort and get back to the state before "git replay", run "git replay --abort".'
 	fi
 
 	__git_replay_print_log "All conflicts resolved by git-rerere"
@@ -751,6 +756,7 @@ __git_replay_write_staging_todos() {
 		start_point=${start_point_path#stage.}
 
 		if ! git show-ref --verify --quiet refs/heads/$start_point; then
+			# This error's language follows that of `git reset --hard <a nonexistent ref>`
 			'builtin' 'print' "fatal: ambiguous argument '$start_point': unknown revision.\n"
 
 			rm $todo_path 2>/dev/null
@@ -766,6 +772,7 @@ __git_replay_write_staging_todos() {
 
 			for commit in $commits; do
 				if ! git show-ref --verify --quiet refs/heads/$commit; then
+					# This error's language follows that of `git merge --no-ff <a nonexistent ref>`
 					'builtin' 'print' "merge: $commit - not something we can merge\n"
 
 					rm $todo_path 2>/dev/null
@@ -796,7 +803,8 @@ readonly VERSION=2.2.0
 
 mkdir -p ${TMPDIR:-/tmp/}git-replay
 
-dir=$root/.git/replay
+dir_name=replay
+dir=$root/.git/$dir_name
 todo_path=${dir}/git-replay-todos
 warning_path=${dir}/git-replay-warnings
 action_path=${dir}/git-replay-current-action
