@@ -442,6 +442,11 @@ __git_replay_main() {
 				file=$2
 				shift 2
 				;;
+			--help|\
+			help)
+				'command' 'man' git-replay 2>/dev/null || 'command' 'cat' ${SOURCE_PATH}/man/git-replay.txt | 'command' 'less' -F
+				return
+				;;
 			-q|\
 			--quiet)
 				quiet=1
@@ -460,6 +465,11 @@ __git_replay_main() {
 				queue_stages=0
 				__git_replay_pop_todo
 				shift
+				;;
+			-v|\
+			--version)
+				'builtin' 'printf' "git-replay version %s\n" "$VERSION"
+				return
 				;;
 			add)
 				shift
@@ -516,10 +526,7 @@ __git_replay_main() {
 				esac
 				return
 				;;
-			help)
-				'command' 'man' git-replay 2>/dev/null || 'command' 'cat' ${SOURCE_PATH}/man/git-replay.txt | 'command' 'less' -F
-				return
-				;;
+			# help -- see --help
 			rebase)
 				queue_rebase_ontos=0
 				queue_stages=0
@@ -768,6 +775,7 @@ fi
 
 readonly SOURCE_PATH=${0:A:h}
 readonly BACKUP_PREFIX="git-replay"
+readonly VERSION=2.1.0
 
 mkdir -p ${TMPDIR:-/tmp/}git-replay
 

@@ -73,6 +73,9 @@ git replay [--file <config file path>] [--back-up] [--dry-run]
          [(--quiet | -q) | (--quieter | -qq)]
          [((--continue | --skip | --continue) | <subcommand>)]
 
+git replay (--help | help)
+
+git replay (--version | -v)
 
 ### Examples
 
@@ -177,7 +180,7 @@ git replay delete stage <start-point> [<upstream> [<branch>]]
 **help**
 
 ```shell
-git replay help
+git replay (help | --help)
 ```
 
 Show the manpage.
@@ -205,6 +208,14 @@ git replay stage
 ```
 
 Replay only the configured "stages".
+
+**version**
+
+```shell
+git replay (--version | -v)
+```
+
+Print the `git-replay` version.
 
 ### Handling conflicts
 

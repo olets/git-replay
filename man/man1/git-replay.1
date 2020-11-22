@@ -24,7 +24,9 @@ git-replay \- automate Git rebases and stage creation
 
 \fBgit replay delete stage\fR \fI<start point>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
 
-\fBgit replay\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
+\fBgit replay\fR (\fBhelp\fR | \fB--help\fR)
+
+\fBgit replay\fR (\fB--version\fR | \fB-v\fR)
 
 .SH DESCRIPTION
 \fBgit-replay\fR automate the rebasing of Git branches and creation of
@@ -135,12 +137,12 @@ Otherwise deletes from the configuration file all configured "stages" with the
 "start point" \fB<start point>\fR.
 
 .IP \(bu
-\fBgit replay\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
+\fBgit replay\fR (\fBhelp\fR | \fB--help\fR)
 
 Show this document.
 
 .IP \(bu
-\fBversion\fR or \fB\-\-version\fR or \fB\-v\fR
+\fBgit replay\fR (\fB--version\fR | \fB-v\fR)
 
 Show the current version.
 

@@ -40,7 +40,9 @@ SYNOPSIS
        <config file path>] [--back-up] [--dry-run] [(--quiet | -q)  |  (--qui-
        eter | -qq)]
 
-       git replay (--help | -h | help)
+       git replay (help | --help)
+
+       git replay (--version | -v)
 
 
 DESCRIPTION
@@ -183,12 +185,12 @@ Commands
               "stages" with the "start point" <start point>.
 
 
-       o      git replay (--help | -h | help)
+       o      git replay (help | --help)
 
               Show this document.
 
 
-       o      version or --version or -v
+       o      git replay (--version | -v)
 
               Show the current version.
 
