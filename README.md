@@ -30,7 +30,7 @@ brew install olets/tap/git-replay
 ### With a shell plugin manager
 
 1. Install [yq](https://github.com/mikefarah/yq)
-1. Add `git-replay` to your plugin manager. Tested on zinit but these snippets should all work — if one doesn't, open an issue!
+1. Add `git-replay` to your shell plugin manager. Tested on zinit but these snippets should all work — if one doesn't, open an issue!
   ```shell
   # antibody: add this to your plugins file
   olets/git-replay
@@ -351,6 +351,7 @@ To automate
 
 ```shell
 git switch -C <branch> <start-point>
+				# aka `git checkout -B <branch> <start-point>`
         # aka `git checkout <branch> && git reset --hard <start-point>
 git commit --no-ff <commit-1>
 git commit --no-ff <commit-2>
@@ -369,10 +370,12 @@ For example, to automate
 
 ```shell
 git switch -C development main
+				# aka `git checkout -B development main`
         # aka `git checkout development && git reset --hard main`
 git commit --no-ff feature-1
 git commit --no-ff feature-2
 git switch -C staging main
+				# aka `git checkout -B staging main`
         # aka `git checkout staging && git reset --hard main`
 git commit --no-ff feature-1
 git commit --no-ff feature-3
@@ -396,7 +399,7 @@ stage:
 
 ## Related
 
-Inspired by [git-assembler](https://gitlab.com/wavexx/git-assembler), which is “Like ‘make’, for branches.” It's cool, check it out! Where git-replay relies on git-rerere in combination with repeated runs to get past conflicts, git-assembler is able resume the latest run. It also has the flexibility to do more than rebase and create stage branches.
+Inspired by [git-assembler](https://gitlab.com/wavexx/git-assembler), which is “Like ‘make’, for branches.” It's cool, check it out! It also has the flexibility to do more than rebase and create stage branches.
 
 ## Contributing
 
