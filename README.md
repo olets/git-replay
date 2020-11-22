@@ -49,7 +49,7 @@ brew install olets/tap/git-replay
   zplug "olets/git-replay", as:command
 
   # zinit: add this to ~/.zshrc
-  zplugin ice as"program" pick"bin/git-replay"
+  zplugin ice as"program" pick"git-replay"
   zplugin light olets/git-replay
   ```
 
