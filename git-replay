@@ -749,6 +749,14 @@ __git_replay_write_staging_todos() {
 
 	for start_point_path in $start_point_paths; do
 		start_point=${start_point_path#stage.}
+
+		if ! git show-ref --verify --quiet refs/heads/$start_point; then
+			'builtin' 'print' "fatal: ambiguous argument '$start_point': unknown revision.\n"
+
+			rm $todo_path 2>/dev/null
+			__git_replay_print_error "There is an error in the 'stage.*' configuration.\nFix it and run me again."
+		fi
+
 		branch_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file $start_point_path.\*)"} )
 
 		for branch_path in $branch_paths; do
@@ -757,7 +765,14 @@ __git_replay_write_staging_todos() {
 			'builtin' 'echo' "stage-start $branch $start_point" >> $todo_path
 
 			for commit in $commits; do
-				'builtin' 'echo' "merge $commit $branch" >> $todo_path
+				if ! git show-ref --verify --quiet refs/heads/$commit; then
+					'builtin' 'print' "merge: $commit - not something we can merge\n"
+
+					rm $todo_path 2>/dev/null
+					__git_replay_print_error "There is a problem in the 'stage.$branch.*' configuration.\nFix it and run me again."
+				fi
+
+				'builtin' 'echo' "merge $viable_commit $branch" >> $todo_path
 			done
 
 			'builtin' 'echo' "stage-end $branch" >> $todo_path
