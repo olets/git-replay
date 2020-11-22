@@ -779,7 +779,7 @@ __git_replay_write_staging_todos() {
 					__git_replay_print_error "There is a problem in the 'stage.$branch.*' configuration.\nFix it and run me again."
 				fi
 
-				'builtin' 'echo' "merge $viable_commit $branch" >> $todo_path
+				'builtin' 'echo' "merge $commit $branch" >> $todo_path
 			done
 
 			'builtin' 'echo' "stage-end $branch" >> $todo_path
