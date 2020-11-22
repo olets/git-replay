@@ -426,6 +426,7 @@ __git_replay_main() {
 			--continue)
 				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
 				continue=1
+				queue_rebase_ontos=0
 				queue_rebases=0
 				queue_stages=0
 				shift
@@ -461,6 +462,7 @@ __git_replay_main() {
 			--skip)
 				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
 				continue=1
+				queue_rebase_ontos=0
 				queue_rebases=0
 				queue_stages=0
 				__git_replay_pop_todo
