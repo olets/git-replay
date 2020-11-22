@@ -69,16 +69,24 @@ brew install olets/tap/git-replay
 
 `git-replay` "replays" configured rebases and stage branch creation. Configuration lives in the `git-replay.yaml` config file (customizable with `--file`). The file is YAML and can have any of the top-level objects `rebase`, `rebase-onto`, and `stage`. (See [Configuration](#configuration).)
 
-With configuration in place, run
+git replay [--file <config file path>] [--back-up] [--dry-run]
+         [(--quiet | -q) | (--quieter | -qq)]
+         [((--continue | --skip | --continue) | <subcommand>)]
+
+
+### Examples
+
+Run the rebases and/or stage creations specified in the configuration file, saving a backup.
 
 ```shell
-git replay [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
-        [--file <config file path>] [(--continue | <subcommand>)]
-git replay --abort
-git replay ( backup-delete | backup-restore )
+git replay --back-up
 ```
 
-If no `<subcommand>` is specified, everything in the configuration file will be replayed.
+Something went wrong? Restore the backup.
+
+```shell
+git replay backup-restore
+```
 
 ### Options
 
