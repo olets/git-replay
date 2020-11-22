@@ -516,6 +516,10 @@ __git_replay_main() {
 				esac
 				return
 				;;
+			help)
+				'command' 'man' git-replay 2>/dev/null || 'command' 'cat' ${SOURCE_PATH}/man/git-replay.txt | 'command' 'less' -F
+				return
+				;;
 			rebase)
 				queue_rebase_ontos=0
 				queue_stages=0
@@ -762,6 +766,7 @@ if [[ -z $root ]]; then
 	return
 fi
 
+readonly SOURCE_PATH=${0:A:h}
 readonly BACKUP_PREFIX="git-replay"
 
 mkdir -p ${TMPDIR:-/tmp/}git-replay
