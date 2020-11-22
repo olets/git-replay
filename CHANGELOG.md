@@ -1,3 +1,19 @@
+# [2.2.1](https://github.com/olets/git-replay/compare/v2.2.0...v2.2.1) (2020-11-22)
+
+
+### Bug Fixes
+
+* **skip:** do not re-queue rebase-ontos ([2af9079](https://github.com/olets/git-replay/commit/2af9079250772ace719e859ed8cbbb979a639e34))
+
+
+### Features
+
+* **no-color:** support new option ([da7c305](https://github.com/olets/git-replay/commit/da7c3057f0b5db83b03457d663ddb9c2931b7171))
+* **rebase, rebase-onto:** do not allow bad configuration ([46a0256](https://github.com/olets/git-replay/commit/46a025605037ff3f7697799dbd0d2a2d0283da8e))
+* **stage:** friendlier handling of bad start points and commits ([2fd9082](https://github.com/olets/git-replay/commit/2fd9082e03462bfea56d8e4559d2f6424b8dbf0a))
+
+
+
 # [2.2.0](https://github.com/olets/git-replay/compare/v2.1.0...v2.2.0) (2020-11-22)
 
 
