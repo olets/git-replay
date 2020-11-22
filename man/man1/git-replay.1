@@ -1,19 +1,33 @@
-.TH "GIT-RENEW" 1 "August 2 2020" "git-renew 1.0.0" "User Commands"
+.TH "GIT-REPLAY" 1 "September 6 2020" "git-replay 2.1.0" "User Commands"
 .SH NAME
-git-renew \- automate Git rebases and stage creation
+git-replay \- automate Git rebases and stage creation
 .SH SYNOPSIS
 
-\fBgit renew\fR [\fI<file.(yaml|yml)>\fR] [\fI--back-up\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+\fBgit replay\fR [\fI<file.(yaml|yml)>\fR] [\fI--back-up\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
 [\fI--dry-run\fR]
 
-\fBgit renew clean\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+\fBgit replay\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
 
-\fBgit renew restore\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+\fBgit replay backup-restore\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
 
-\fBgit renew\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
+\fBgit replay backup-delete\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+\fBgit replay add rebase\fR \fI<upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+\fBgit replay add rebase-onto\fR \fI<newbase> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+\fBgit replay add stage\fR \fI<start point> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+\fBgit replay delete rebase\fR \fI<upstream>\fR [\fI<branch>\fR] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+\fBgit replay delete rebase-onto\fR \fI<newbase>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+\fBgit replay delete stage\fR \fI<start point>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+\fBgit replay\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
 
 .SH DESCRIPTION
-\fBgit-renew\fR automate the rebasing of Git branches and creation of
+\fBgit-replay\fR automate the rebasing of Git branches and creation of
 stage branches (ie branches into which one or more feature branch is
 merged with a merge commit).
 
@@ -21,48 +35,107 @@ merged with a merge commit).
 The following commands are available:
 
 .IP \(bu
-\fBgit renew\fR [\fI<file.(yaml|yml)>\fR] [\fI--back-up\fR]
+\fBgit replay\fR [\fI<file.(yaml|yml)>\fR] [\fI--back-up\fR]
 [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
 
 Run the configured automation.
 
-The \fIback-up\fR option saves a copy of every branch. Backup branches are
-prefixed with \fIgit-renew/\fR.
+The \fI--file\fR option specifies the path to the configuration file (default is \fIgit-renew.yaml\fR).
 
-The \fIquiet\fR option passes the `--quiet` flag to Git when applicable.
+The \fI--back-up\fR option saves a copy of every branch. Backup branches are
+prefixed with \fIgit-replay/\fR.
 
-The \fIquieter\fR option additionally suppresses most git-renew output.
+The \fI--quiet\fR option passes the `--quiet` flag to Git when applicable.
 
-The \fIdry-run\fR option logs (unless quieter is set) but does not
+The \fI--quieter\fR option additionally suppresses most git-replay output.
+
+The \fI--dry-run\fR option logs (unless quieter is set) but does not
 run commands.
 
 .IP \(bu
-\fBgit renew clean\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+\fBgit replay backup-delete\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
 
-Delete the backup branches (prefixed \fIgit-renew/\fR).
+Delete all backup branches. \fIBackup branches are defined as those with the
+prefix "git-replay/".\fR If the backed up branch is not found -for example if
+there is no branch "x" to go with the backup branch "git-replay/x"- a warning
+will be printed and the backup branch will not be deleted.
 
-The \fIquiet\fR option passes the `--quiet` flag to Git when applicable.
+The \fI--quiet\fR option passes the `--quiet` flag to Git when applicable.
 
-The \fIquieter\fR option additionally suppresses most git-renew output.
+The \fI--quieter\fR option additionally suppresses most git-replay output.
 
-The \fIdry-run\fR option logs (unless quieter is set) but does not
+The \fI--dry-run\fR option logs (unless quieter is set) but does not
 run commands.
 
 .IP \(bu
-\fBgit renew restore\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
+\fBgit replay backup-restore\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR]
 
-Resets all branches in the config file to where they were before the most
-recent \fBgit renew\fR run.
+Reset every configured branch to its \fBgit-replay/\fR-prefixed backup, and then delete all backups.
 
-The \fIquiet\fR option passes the `--quiet` flag to Git when applicable.
+For every backup branch, reset the current branch to the backup and then
+delete the backup branch. \fIBackup branches are defined as those with the
+prefix "git-replay/."\fR If the backed up branch is not found -for example if
+there is no branch "x" to go with the backup branch "git-replay/x"- a
+warning will be printed and the backup branch will not be deleted.
 
-The \fIquieter\fR option additionally suppresses most git-renew output.
+The \fI--quiet\fR option passes the `--quiet` flag to Git when applicable.
 
-The \fIdry-run\fR option logs (unless quieter is set) but does not
+The \fI--quieter\fR option additionally suppresses most git-replay output.
+
+The \fI--dry-run\fR option logs (unless quieter is set) but does not
 run commands.
 
 .IP \(bu
-\fBgit renew\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
+\fBgit replay add rebase\fR \fI<upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+Adds to the configuration file the configuration for
+\fBgit rebase <upstream> <branch>\fR.
+
+.IP \(bu
+\fBgit replay add rebase-onto\fR \fI<newbase> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+Adds to the configuration file the configuration for
+\fBgit rebase --onto <newbase> <upstream> <branch>\fR.
+
+.IP \(bu
+\fBgit replay add stage\fR \fI<start point> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+Adds to the configuration file the configuration for
+\fBgit switch -C <upstream> <start point> && git merge --no-ff <branch>\fR.
+
+.IP \(bu
+\fBgit replay delete rebase\fR \fI<upstream>\fR [\fI<branch>\fR] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+If \fI<branch>\fR is provided, deletes from the configuration file the configuration for \fBgit rebase <upstream> <branch>\fR.
+
+Otherwise deletes from the configuration file all configured \fBrebase --onto\fRs with the \fBnewbase <newbase>\fR.
+
+.IP \(bu
+\fBgit replay delete rebase-onto\fR \fI<newbase>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+If \fI<upstream>\fR \fI<branch>\fR is provided, deletes from the configuration file the configuration for \fBgit rebase --onto <newbase> <upstream> <branch>\fR.
+
+If \fI<branch>\fR is not provided, deletes from the configuration file all configured \fBrebase --onto\fR`s with the \fBnewbase <newbase>\fR and
+\fBupstream <upstream>\fR.
+
+Otherwise deletes from the configuration file all configured \fBrebase --onto\fRs with the \fBnewbase <newbase>\fR.
+
+.IP \(bu
+\fBgit replay delete stage\fR \fI<start point>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
+
+If \fI<upstream>\fR \fI<branch>\fR is provided, deletes from the configuration
+file the configuration for
+\fBgit checkout -B <upstream> <start point> && git merge --no-ff <branch>\fR.
+
+If \fI<branch>\fR is not provided, deletes from the configuration file all
+configured "stages" with the "start point" \fB<start point>\fR and
+\fBupstream <upstream>\fR.
+
+Otherwise deletes from the configuration file all configured "stages" with the
+"start point" \fB<start point>\fR.
+
+.IP \(bu
+\fBgit replay\fR (\fB--help\fR | \fB-h\fR | \fBhelp\fR)
 
 Show this document.
 
@@ -73,10 +146,46 @@ Show the current version.
 
 .SH Configuration
 Configure automation in the YAML configuration file, by default
-\fIgit-renew.yaml\fR in the repo root directory.
+\fIgit-replay.yaml\fR in the repo root directory.
+
+The following config file automates the following:
+
+git rebase <upstream 1> <branch 1>
+
+git rebase <upstream 1> <branch 2>
+
+git rebase <upstream 2> <branch 3>
+
+git rebase --onto <newbase 1> <upstream 1> <branch 1>
+
+git rebase --onto <newbase 1> <upstream 1> <branch 2>
+
+git rebase --onto <newbase 2> <upstream 2> <branch 3>
+
+git checkout <branch 1>
+
+git reset --hard <start-point 1>
+
+git merge --no-ff <commit 1>
+
+git merge --no-ff <commit 2>
+
+git merge --no-ff <commit 3>
+
+git checkout <branch 2>
+
+git reset --hard <start-point 1>
+
+git merge --no-ff <commit 3>
+
+git checkout <branch 3>
+
+git reset --hard <start-point 2>
+
+git merge --no-ff <commit 4>
 
 .IP \(bu
-\fIRebasing\fR
+\fIYAML config file\fR
 
 rebase:
 
@@ -92,15 +201,25 @@ rebase:
 
 		- <branch 4>
 
+rebase-onto:
 
-.IP \(bu
-\fIStages\fR
+	<newbase 1>:
+
+		<upstream 1>:
+
+			- <branch 1>
+
+			- <branch 2>
+
+	<newbase 2>:
+
+		<upstream 2>: <branch 3>
 
 stage:
 
 	<start-point 1>:
 
-		- <branch 5>:
+		<branch 1>:
 
 			- <commit 1>
 
@@ -108,11 +227,15 @@ stage:
 
 			- <commit 3>
 
-		- <branch 6>: <commit 2>
+		<branch 2>: <commit 2>
 
-		- <branch 7>:
+	<start-point 2>:
 
-			- <commit 3>
+		<branch 3>:
+
+			- <commit 1>
+
+			- <commit 4>
 
 .SH AUTHORS
 

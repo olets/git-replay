@@ -1,8 +1,8 @@
-# git-replay
+# git-replay ![GitHub release (latest by date)](https://img.shields.io/github/v/release/olets/git-replay)
 
-Automate the rebasing of Git branches and creation of "stage" branches (ie branches into which one or more feature branch is merged with a merge commit).
+Automate the rebasing of Git branches and creation of "stage" branches (ie branches into which one or more feature branches are merged with a merge commit).
 
-Handy if you follow a linear or merge-commit-free Git process, have several features in progress at once, and find yourself rebasing feature branches and recreating stage branches every time there's a significant change in the trunk.
+Handy if you have several features in progress at once, and find yourself rebasing feature branches and recreating stage branches every time there's a significant change in the trunk.
 
 - [Installation](#installation)
 - [Requirements](#requirements)
@@ -116,11 +116,11 @@ git replay add stage <start-point> <upstream> <branch>
 
 `git-replay` uses a YAML config file, so editing the file directly is a good experience. But there is a CLI too.
 
-`git replay add rebase <upstream> <branch>` adds the configuration for `git rebase <upstream> <branch>`.
+`git replay add rebase <upstream> <branch>` adds to the configuration file the configuration for `git rebase <upstream> <branch>`.
 
-`git replay add rebase-onto <newbase> <upstream> <branch>` adds the configuration for `git rebase --onto <newbase> <upstream> <branch>`.
+`git replay add rebase-onto <newbase> <upstream> <branch>` adds to the configuration file the configuration for `git rebase --onto <newbase> <upstream> <branch>`.
 
-`git replay add stage <start point> <upstream> <branch>` adds the configuration for `git switch -C <upstream> <start point> && git merge --no-ff <branch>`.
+`git replay add stage <start point> <upstream> <branch>` adds to the configuration file the configuration for `git switch -C <upstream> <start point> && git merge --no-ff <branch>`.
 
 **backup-delete**
 
@@ -150,21 +150,21 @@ git replay delete stage <start-point> [<upstream> [<branch>]]
 
 `git-replay` uses a YAML config file, so editing the file directly is a good experience. But there is a CLI too.
 
-`git replay delete rebase <upstream>` deletes all configured `rebase`s off `<upstream>`.
+`git replay delete rebase <upstream>` deletes from the configuration file all configured `rebase`s off `<upstream>`.
 
-`git replay delete rebase <upstream> <branch>` deletes the configuration for `git rebase <upstream> <branch>`.
+`git replay delete rebase <upstream> <branch>` deletes from the configuration file the configuration for `git rebase <upstream> <branch>`.
 
-`git replay delete rebase-onto <newbase>` deletes all configured `rebase --onto`s with the `newbase` `<newbase>`.
+`git replay delete rebase-onto <newbase>` deletes from the configuration file all configured `rebase --onto`s with the `newbase` `<newbase>`.
 
-`git replay delete rebase-onto <newbase> <upstream>` deletes all configured `rebase --onto`s with the `newbase` `<newbase>` and `upstream` `<upstream>`.
+`git replay delete rebase-onto <newbase> <upstream>` deletes from the configuration file all configured `rebase --onto`s with the `newbase` `<newbase>` and `upstream` `<upstream>`.
 
-`git replay delete rebase-onto <newbase> <upstream> <branch>` deletes the configuration for `git rebase --onto <newbase> <upstream> <branch>`.
+`git replay delete rebase-onto <newbase> <upstream> <branch>` deletes from the configuration file the configuration for `git rebase --onto <newbase> <upstream> <branch>`.
 
-`git replay delete stage <start point>` deletes all configured "stages" with the "start point" `<start point>`.
+`git replay delete stage <start point>` deletes from the configuration file all configured "stages" with the "start point" `<start point>`.
 
-`git replay delete stage <start point> <upstream>` deletes all configured `rebase --onto`s with the "start point" `<start point>` and `upstream` `<upstream>`.
+`git replay delete stage <start point> <upstream>` deletes from the configuration file all "stages" with the "start point" `<start point>` and `upstream` `<upstream>`.
 
-`git replay delete stage <start point> <upstream> <branch>` deletes the configuration for `git switch -C <upstream> <start point> && git merge --no-ff <branch>`.
+`git replay delete stage <start point> <upstream> <branch>` deletes the configuration for `git checkout -B <upstream> <start point> && git merge --no-ff <branch>`.
 
 **help**
 

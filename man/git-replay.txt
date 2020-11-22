@@ -1,24 +1,51 @@
-GIT-RENEW(1)                     User Commands                    GIT-RENEW(1)
+GIT-REPLAY(1)                    User Commands                   GIT-REPLAY(1)
 
 
 
 NAME
-       git-renew - automate Git rebases and stage creation
+       git-replay - automate Git rebases and stage creation
 
 SYNOPSIS
-       git  renew [<file.(yaml|yml)>] [--back-up] [(--quiet | -q) | (--quieter
+       git replay [<file.(yaml|yml)>] [--back-up] [(--quiet | -q) | (--quieter
        | -qq)] [--dry-run]
 
-       git renew clean [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
+       git  replay  [--file  <config  file  path>]   [--back-up]   [--dry-run]
+       [(--quiet | -q) | (--quieter | -qq)]
 
-       git renew restore [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
+       git  replay  backup-restore  [--file  <config  file  path>] [--back-up]
+       [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
 
-       git renew (--help | -h | help)
+       git  replay  backup-delete  [--file  <config  file  path>]  [--back-up]
+       [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+
+       git  replay  add rebase <upstream> <branch> [--file <config file path>]
+       [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+
+       git replay add rebase-onto <newbase> <upstream> <branch> [--file  <con-
+       fig  file path>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter |
+       -qq)]
+
+       git replay add stage <start point> <upstream> <branch> [--file  <config
+       file  path>]  [--back-up]  [--dry-run]  [(--quiet  | -q) | (--quieter |
+       -qq)]
+
+       git replay delete rebase <upstream>  [<branch>]  [--file  <config  file
+       path>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter | -qq)]
+
+       git replay delete rebase-onto <newbase> [<upstream> [<branch>]] [--file
+       <config file path>] [--back-up] [--dry-run] [(--quiet | -q)  |  (--qui-
+       eter | -qq)]
+
+       git  replay  delete stage <start point> [<upstream> [<branch>]] [--file
+       <config file path>] [--back-up] [--dry-run] [(--quiet | -q)  |  (--qui-
+       eter | -qq)]
+
+       git replay (--help | -h | help)
 
 
 DESCRIPTION
-       git-renew automate the rebasing of Git branches and creation  of  stage
-       branches  (ie  branches into which one or more feature branch is merged
+       git-replay  automate the rebasing of Git branches and creation of stage
+       branches (ie branches into which one or more feature branch  is  merged
        with a merge commit).
 
 
@@ -26,55 +53,137 @@ Commands
        The following commands are available:
 
 
-       o      git renew [<file.(yaml|yml)>]  [--back-up]  [(--quiet  |  -q)  |
+       o      git  replay  [<file.(yaml|yml)>]  [--back-up]  [(--quiet | -q) |
               (--quieter | -qq)] [--dry-run]
 
               Run the configured automation.
 
-              The back-up option saves a copy of every branch. Backup branches
-              are prefixed with git-renew/.
+              The --file option specifies the path to the  configuration  file
+              (default is git-renew.yaml).
 
-              The quiet option passes the `--quiet` flag to Git when  applica-
-              ble.
+              The  --back-up  option  saves  a  copy  of  every branch. Backup
+              branches are prefixed with git-replay/.
 
-              The  quieter  option additionally suppresses most git-renew out-
-              put.
+              The --quiet option passes the `--quiet` flag to Git when  appli-
+              cable.
 
-              The dry-run option logs (unless quieter is set) but does not run
-              commands.
+              The  --quieter  option  additionally  suppresses most git-replay
+              output.
 
-
-       o      git renew clean [(--quiet | -q) | (--quieter | -qq)] [--dry-run]
-
-              Delete the backup branches (prefixed git-renew/).
-
-              The quiet option passes the `--quiet` flag to Git when  applica-
-              ble.
-
-              The  quieter  option additionally suppresses most git-renew out-
-              put.
-
-              The dry-run option logs (unless quieter is set) but does not run
-              commands.
+              The --dry-run option logs (unless quieter is set) but  does  not
+              run commands.
 
 
-       o      git  renew  restore [(--quiet | -q) | (--quieter | -qq)] [--dry-
-              run]
+       o      git  replay  backup-delete  [(--quiet | -q) | (--quieter | -qq)]
+              [--dry-run]
 
-              Resets all branches in the config file to where they were before
-              the most recent git renew run.
+              Delete all backup branches. Backup branches are defined as those
+              with  the  prefix  "git-replay/". If the backed up branch is not
+              found -for example if there is no branch  "x"  to  go  with  the
+              backup  branch "git-replay/x"- a warning will be printed and the
+              backup branch will not be deleted.
 
-              The  quiet option passes the `--quiet` flag to Git when applica-
-              ble.
+              The --quiet option passes the `--quiet` flag to Git when  appli-
+              cable.
 
-              The quieter option additionally suppresses most  git-renew  out-
-              put.
+              The  --quieter  option  additionally  suppresses most git-replay
+              output.
 
-              The dry-run option logs (unless quieter is set) but does not run
-              commands.
+              The --dry-run option logs (unless quieter is set) but  does  not
+              run commands.
 
 
-       o      git renew (--help | -h | help)
+       o      git  replay  backup-restore [(--quiet | -q) | (--quieter | -qq)]
+              [--dry-run]
+
+              Reset  every  configured  branch  to  its   git-replay/-prefixed
+              backup, and then delete all backups.
+
+              For  every backup branch, reset the current branch to the backup
+              and then delete the backup branch. Backup branches  are  defined
+              as  those with the prefix "git-replay/." If the backed up branch
+              is not found -for example if there is no branch "x" to  go  with
+              the  backup branch "git-replay/x"- a warning will be printed and
+              the backup branch will not be deleted.
+
+              The --quiet option passes the `--quiet` flag to Git when  appli-
+              cable.
+
+              The  --quieter  option  additionally  suppresses most git-replay
+              output.
+
+              The --dry-run option logs (unless quieter is set) but  does  not
+              run commands.
+
+
+       o      git  replay  add rebase <upstream> <branch> [--file <config file
+              path>] [--back-up] [--dry-run] [(--quiet | -q)  |  (--quieter  |
+              -qq)]
+
+              Adds  to the configuration file the configuration for git rebase
+              <upstream> <branch>.
+
+
+       o      git replay add rebase-onto <newbase> <upstream> <branch> [--file
+              <config  file  path>]  [--back-up] [--dry-run] [(--quiet | -q) |
+              (--quieter | -qq)]
+
+              Adds to the configuration file the configuration for git  rebase
+              --onto <newbase> <upstream> <branch>.
+
+
+       o      git  replay  add stage <start point> <upstream> <branch> [--file
+              <config file path>] [--back-up] [--dry-run] [(--quiet  |  -q)  |
+              (--quieter | -qq)]
+
+              Adds  to the configuration file the configuration for git switch
+              -C <upstream> <start point> && git merge --no-ff <branch>.
+
+
+       o      git replay delete rebase <upstream> [<branch>]  [--file  <config
+              file path>] [--back-up] [--dry-run] [(--quiet | -q) | (--quieter
+              | -qq)]
+
+              If <branch> is provided, deletes from the configuration file the
+              configuration for git rebase <upstream> <branch>.
+
+              Otherwise  deletes  from  the  configuration file all configured
+              rebase --ontos with the newbase <newbase>.
+
+
+       o      git replay delete rebase-onto <newbase> [<upstream>  [<branch>]]
+              [--file  <config file path>] [--back-up] [--dry-run] [(--quiet |
+              -q) | (--quieter | -qq)]
+
+              If <upstream> <branch> is provided, deletes from the  configura-
+              tion  file  the  configuration  for  git rebase --onto <newbase>
+              <upstream> <branch>.
+
+              If <branch> is not provided, deletes from the configuration file
+              all  configured  rebase  --onto`s with the newbase <newbase> and
+              upstream <upstream>.
+
+              Otherwise deletes from the  configuration  file  all  configured
+              rebase --ontos with the newbase <newbase>.
+
+
+       o      git  replay  delete  stage <start point> [<upstream> [<branch>]]
+              [--file <config file path>] [--back-up] [--dry-run] [(--quiet  |
+              -q) | (--quieter | -qq)]
+
+              If  <upstream> <branch> is provided, deletes from the configura-
+              tion file the  configuration  for  git  checkout  -B  <upstream>
+              <start point> && git merge --no-ff <branch>.
+
+              If <branch> is not provided, deletes from the configuration file
+              all configured "stages" with the "start point" <start point> and
+              upstream <upstream>.
+
+              Otherwise  deletes  from  the  configuration file all configured
+              "stages" with the "start point" <start point>.
+
+
+       o      git replay (--help | -h | help)
 
               Show this document.
 
@@ -86,10 +195,46 @@ Commands
 
 Configuration
        Configure automation in the YAML configuration file,  by  default  git-
-       renew.yaml in the repo root directory.
+       replay.yaml in the repo root directory.
+
+       The following config file automates the following:
+
+       git rebase <upstream 1> <branch 1>
+
+       git rebase <upstream 1> <branch 2>
+
+       git rebase <upstream 2> <branch 3>
+
+       git rebase --onto <newbase 1> <upstream 1> <branch 1>
+
+       git rebase --onto <newbase 1> <upstream 1> <branch 2>
+
+       git rebase --onto <newbase 2> <upstream 2> <branch 3>
+
+       git checkout <branch 1>
+
+       git reset --hard <start-point 1>
+
+       git merge --no-ff <commit 1>
+
+       git merge --no-ff <commit 2>
+
+       git merge --no-ff <commit 3>
+
+       git checkout <branch 2>
+
+       git reset --hard <start-point 1>
+
+       git merge --no-ff <commit 3>
+
+       git checkout <branch 3>
+
+       git reset --hard <start-point 2>
+
+       git merge --no-ff <commit 4>
 
 
-       o      Rebasing
+       o      YAML config file
 
               rebase:
 
@@ -105,15 +250,25 @@ Configuration
 
                         - <branch 4>
 
+              rebase-onto:
 
+                   <newbase 1>:
 
-       o      Stages
+                        <upstream 1>:
+
+                             - <branch 1>
+
+                             - <branch 2>
+
+                   <newbase 2>:
+
+                        <upstream 2>: <branch 3>
 
               stage:
 
                    <start-point 1>:
 
-                        - <branch 5>:
+                        <branch 1>:
 
                              - <commit 1>
 
@@ -121,11 +276,15 @@ Configuration
 
                              - <commit 3>
 
-                        - <branch 6>: <commit 2>
+                        <branch 2>: <commit 2>
 
-                        - <branch 7>:
+                   <start-point 2>:
 
-                             - <commit 3>
+                        <branch 3>:
+
+                             - <commit 1>
+
+                             - <commit 4>
 
 
 AUTHORS
@@ -133,4 +292,4 @@ AUTHORS
 
 
 
-git-renew 1.0.0                  August 2 2020                    GIT-RENEW(1)
+git-replay 2.1.0               September 6 2020                  GIT-REPLAY(1)
