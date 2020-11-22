@@ -1,3 +1,23 @@
+# [2.2.0](https://github.com/olets/git-replay/compare/v2.1.0...v2.2.0) (2020-11-22)
+
+
+### Bug Fixes
+
+* **backups:** follow 2.x rebranding ([ea3d274](https://github.com/olets/git-replay/commit/ea3d27433aed4b9cd8c48d9a8725f72e12d7b8a6))
+* **man:** use name 'git-replay' ([ddf89f2](https://github.com/olets/git-replay/commit/ddf89f204aa2741a5b840d4f00f8d4d260c0a558))
+
+
+### Features
+
+* **git:** support older versions by not using 'switch' ([8d280ec](https://github.com/olets/git-replay/commit/8d280ec1474d7fa4f618c38b9cb2762be5a81837))
+* **help:** add subcommand ([8c795a0](https://github.com/olets/git-replay/commit/8c795a05b22bd20eea7b87824f293c6d68ffe9e6))
+* **restore:** support rebase-onto and stage branches ([86c1720](https://github.com/olets/git-replay/commit/86c1720a8c70f60ba2cf0ddd45ac38443f7f81e8))
+* **run:** error if todos exist and --continue not passed ([6934ef3](https://github.com/olets/git-replay/commit/6934ef34950ac17290fbfba8886b4e7229ef2e3b))
+* **skip:** add support for --skip ([c5f2cb6](https://github.com/olets/git-replay/commit/c5f2cb6af4ba754248ec80748286c1506bd8b637))
+* **version:** add subcommand ([58645fa](https://github.com/olets/git-replay/commit/58645fab96e33a7ad8c1c42c4eaf85f88fe24908))
+
+
+
 # [2.1.0](https://github.com/olets/git-replay/compare/v2.0.1...v2.1.0) (2020-09-06)
 
 
