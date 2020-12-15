@@ -261,10 +261,10 @@ __git_replay_do_todo() {
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || return
+						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					else
 						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
-						git branch --force $BACKUP_PREFIX/$branch $branch || return
+						git branch --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					fi
 				fi
 			fi
@@ -282,6 +282,7 @@ __git_replay_do_todo() {
 				fi
 
 				(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch
+
 				__git_replay_diverged $branch
 			fi
 
@@ -330,10 +331,10 @@ __git_replay_do_todo() {
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || return
+						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					else
 						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
-						git branch --force $BACKUP_PREFIX/$branch $branch || return
+						git branch --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					fi
 				fi
 			fi
@@ -351,6 +352,7 @@ __git_replay_do_todo() {
 				fi
 
 				(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch $newbase
+
 				__git_replay_diverged $branch
 			fi
 
@@ -365,6 +367,7 @@ __git_replay_do_todo() {
 			;;
 		stage-start)
 			local branch
+			local -i the_exit_code
 			local start_point
 
 			branch=$cmd_words[2]
@@ -375,10 +378,10 @@ __git_replay_do_todo() {
 
 				if ! (( dry_run )); then
 					if (( quiet )); then
-						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || return
+						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					else
 						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
-						git branch --force $BACKUP_PREFIX/$branch $branch || return
+						git branch --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					fi
 				fi
 			fi
@@ -387,12 +390,16 @@ __git_replay_do_todo() {
 
 			if ! (( dry_run )); then
 				if (( quiet )); then
-					git checkout --quiet -B $branch $start_point || return
+					git checkout --quiet -B $branch $start_point
+					the_exit_code=$?
 				else
 					'builtin' 'print' "git checkout -B $branch $start_point"
-					git checkout -B $branch $start_point || return
+					git checkout -B $branch $start_point
+					the_exit_code=$?
 				fi
 			fi
+
+			(( the_exit_code )) && __git_replay_print_error "Staging $branch failed. Does \`$start_point' exist?"
 			;;
 		*)
 			__git_replay_print_error "git-replay can not run the todo \`$todo'"
@@ -400,10 +407,12 @@ __git_replay_do_todo() {
 	esac
 }
 
-__git_replay_print_error() {
-	__git_replay_warnings
-	'builtin' 'print' -P "$color[error]$@%f"
-	'builtin' 'exit' 1
+__git_replay_handle_failed_backup() {
+	local branch
+
+	branch=$1
+
+	'builtin' 'echo' "The branch \`$branch' was not backed up. Perhaps it did not exist at the time of backup?" >> $warning_path
 }
 
 __git_replay_main() {
@@ -643,6 +652,12 @@ __git_replay_pop_todo() {
 	todos_updated=$(mktemp ${TMPDIR:-/tmp/}git-replay/git-replay-todos_updated.XXXXXX)
 	'command' 'sed' '1d' $todo_path > $todos_updated
 	'command' 'mv' $todos_updated $todo_path
+}
+
+__git_replay_print_error() {
+	__git_replay_warnings
+	'builtin' 'print' -P "$color[error]$@%f"
+	'builtin' 'exit' 1
 }
 
 __git_replay_print_log() {
