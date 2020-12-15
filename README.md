@@ -31,27 +31,27 @@ brew install olets/tap/git-replay
 
 1. Install [yq](https://github.com/mikefarah/yq)
 1. Add `git-replay` to your shell plugin manager. Tested on zinit but these snippets should all work — if one doesn't, open an issue!
-  ```shell
-  # antibody: add this to your plugins file
-  olets/git-replay
+    ```shell
+    # antibody: add this to your plugins file
+    olets/git-replay
 
-  # antigen: add this to ~/.zshrc
-  antigen bundle olets/git-replay
+    # antigen: add this to ~/.zshrc
+    antigen bundle olets/git-replay
 
-  # omz
-  git clone https://github.com/olets/git-replay.git $ZSH_CUSTOM/plugins/git-replay
-  # and then add git-replay to the plugins list in ~/.zshrc
+    # omz
+    git clone https://github.com/olets/git-replay.git $ZSH_CUSTOM/plugins/git-replay
+    # and then add git-replay to the plugins list in ~/.zshrc
 
-  # zgen: add this to the zgen load function in your ~/.zshrc
-  zgen load olets/git-replay
+    # zgen: add this to the zgen load function in your ~/.zshrc
+    zgen load olets/git-replay
 
-  # zplug: add this to ~/.zshrc
-  zplug "olets/git-replay", as:command
+    # zplug: add this to ~/.zshrc
+    zplug "olets/git-replay", as:command
 
-  # zinit: add this to ~/.zshrc
-  zplugin ice as"program" pick"git-replay"
-  zplugin light olets/git-replay
-  ```
+    # zinit: add this to ~/.zshrc
+    zplugin ice as"program" pick"git-replay"
+    zplugin light olets/git-replay
+    ```
 
 ### Manual
 
