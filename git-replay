@@ -184,19 +184,16 @@ __git_replay_delete_stage() {
 	fi
 }
 
-__git_replay_diverged(){
+__git_replay_diverged $branch() {
 	local branch
+	local sha
 	local remote_sha
 
 	branch=$1
+	sha=$(git rev-parse $branch)
 	remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
 
-	if [[ -n $remote_sha && $remote_sha != $(git rev-parse $branch) ]]; then
-		mkdir -p $dir
-		touch $warning_path
-
-		'builtin' 'echo' "$branch has diverged from its upstream" >> $warning_path
-	fi
+	[[ -n $sha && -n $remote_sha && $sha != $remote_sha ]]
 }
 
 __git_replay_do_todo() {
@@ -283,7 +280,7 @@ __git_replay_do_todo() {
 
 				(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch
 
-				__git_replay_diverged $branch
+				__git_replay_log_divergence $branch
 			fi
 
 			rm $action_path
@@ -308,7 +305,7 @@ __git_replay_do_todo() {
 				git rerere
 
 				__git_replay_rebase_continue 0 $upstream $branch
-				__git_replay_diverged $branch
+				__git_replay_log_divergence $branch
 			fi
 
 			rm $action_path
@@ -353,7 +350,7 @@ __git_replay_do_todo() {
 
 				(( the_exit_code )) && __git_replay_rebase_continue $the_exit_code $upstream $branch $newbase
 
-				__git_replay_diverged $branch
+				__git_replay_log_divergence $branch
 			fi
 
 			rm $action_path
@@ -363,7 +360,7 @@ __git_replay_do_todo() {
 
 			branch=$cmd_words[2]
 
-			(( dry_run )) || __git_replay_diverged $branch
+			(( dry_run )) || __git_replay_log_divergence $branch
 			;;
 		stage-start)
 			local branch
@@ -415,8 +412,22 @@ __git_replay_handle_failed_backup() {
 	'builtin' 'echo' "The branch \`$branch' was not backed up. Perhaps it did not exist at the time of backup?" >> $warning_path
 }
 
+__git_replay_log_divergence() {
+	local branch
+
+	branch=$1
+
+	__git_replay_diverged $branch || return
+
+	mkdir -p $dir
+	touch $warning_path
+	'builtin' 'echo' "$branch has diverged from its upstream" >> $warning_path
+}
+
 __git_replay_main() {
 	local -i continue
+	local -i dediverge
+	local -i force_dediverge
 	local -i no_color
 	local opt
 	local -i queue_rebases
@@ -467,6 +478,10 @@ __git_replay_main() {
 			--file)
 				file=$2
 				shift 2
+				;;
+			--force)
+				force_dediverge=1
+				shift
 				;;
 			--help|\
 			help)
@@ -556,6 +571,10 @@ __git_replay_main() {
 				esac
 				return
 				;;
+			dediverge)
+				dediverge=1
+				shift
+				;;
 			# help -- see --help
 			rebase)
 				queue_rebase_ontos=0
@@ -585,6 +604,12 @@ __git_replay_main() {
 	if [[ -f $todo_path ]] && ! (( continue )); then
 		# This error's language follows that given by `git rebase` when a rebase is already in progress
 		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort | --skip)\nIf that is not the case, please\n        rm \".git/$dir_name/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
+	fi
+
+	if (( dediverge )); then
+		__git_replay_dediverge
+		__git_replay_print_log Replay complete
+		return
 	fi
 
 	mkdir -p $dir
@@ -628,7 +653,7 @@ __git_replay_merge_continue() {
 		'command' 'cat' $todo_path >> $todos_updated
 		'command' 'mv' $todos_updated $todo_path
 
-		__git_replay_diverged $branch
+		__git_replay_log_divergence $branch
 
 		# This error's langage follows that given when `git rebase` hits a conflict.
 		__git_replay_print_error 'Resolve all conflicts manually, mark them as resolved with\n"git add/rm <conflicted_files>", then run "git replay [--file <config file>] --continue".\nYou can instead skip this replay action: run "git replay [--file <config file>] --skip".\nTo abort and get back to the state before "git replay", run "git replay --abort".'
@@ -693,7 +718,7 @@ __git_replay_rebase_continue() {
 		'command' 'cat' $todo_path >> $todos_updated
 		'command' 'mv' $todos_updated $todo_path
 
-		__git_replay_diverged $branch
+		__git_replay_log_divergence $branch
 
 		# This error's langage follows that given when `git rebase` hits a conflict.
 		__git_replay_print_error 'Resolve all conflicts manually, mark them as resolved with\n"git add/rm <conflicted_files>", then run "git replay [--file <config file>] --continue".\nYou can instead skip this replay action: run "git replay [--file <config file>] --skip".\nTo abort and get back to the state before "git replay", run "git replay --abort".'
@@ -725,6 +750,118 @@ __git_replay_warnings() {
 	for warning in $__git_replay_warnings; do
 		__git_replay_print_warning $warning
 	done
+}
+
+__git_replay_dediverge() {
+	local branch
+	local -a branches
+	local diverged_branch
+	local -a diverged_branches
+	local -a rebase_branches
+	local rebase_branch
+	local rebase_branch_value
+	local -a rebase_branch_values
+	local rebase_onto_upstream
+	local rebase_onto_upstream_path
+	local -a rebase_onto_upstream_paths
+	local rebase_onto_branch
+	local -a rebase_onto_branches
+	local rebase_onto_newbase
+	local rebase_onto_newbase_path
+	local -a rebase_onto_newbase_paths
+	local rebase_upstream
+	local rebase_upstream_path
+	local -a rebase_upstream_paths
+	local stage_branch
+	local stage_branch_path
+	local -a stage_branch_paths
+	local -a stage_branches
+	local stage_start_point
+	local stage_start_point_path
+	local -a stage_start_point_paths
+
+	__git_replay_print_log Looking for diverged branches...
+
+	# get all branches in rebase commands
+	rebase_upstream_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file 'rebase.*')"} )
+	for rebase_upstream_path in $rebase_upstream_paths; do
+		rebase_branch_values=( ${(f)"$('command' 'yq' r --stripComments $file $rebase_upstream_path)"} )
+
+		for rebase_branch_value in $rebase_branch_values; do
+			rebase_branch=${rebase_branch_value#- }
+			branches+=( $rebase_branch )
+		done
+	done
+
+	# get all branches in rebase-onto commands
+	rebase_onto_newbase_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file 'rebase-onto.*')"} )
+	for rebase_onto_newbase_path in $rebase_onto_newbase_paths; do
+		rebase_onto_newbase=${rebase_onto_newbase_path#rebase-onto.}
+		rebase_onto_upstream_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file $rebase_onto_newbase_path.\*)"} )
+
+		for rebase_onto_upstream_path in $rebase_onto_upstream_paths; do
+			rebase_onto_upstream=${rebase_onto_upstream_path#$rebase_onto_newbase_path.}
+			branches+=( ${(f)"$('command' 'yq' r $file $rebase_onto_upstream_path.\*)"} )
+		done
+	done
+
+	# get all branches in stage commands
+	stage_start_point_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file 'stage.*')"} )
+	for stage_start_point_path in $stage_start_point_paths; do
+		stage_start_point=${stage_start_point_path#stage.}
+		stage_branch_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file $stage_start_point_path.\*)"} )
+
+		for stage_branch_path in $stage_branch_paths; do
+			stage_branch=${stage_branch_path#$stage_start_point_path.}
+			branches+=( $stage_branch )
+		done
+	done
+
+	# identify diverged branches
+	for branch in $branches; do
+		(( ${diverged_branches[(Ie)$branch]} )) && continue
+		git checkout --quiet $branch || continue
+		__git_replay_diverged $branch || continue
+		diverged_branches+=( $branch )
+	done
+
+	if ! (( ${#diverged_branches} )); then
+		(( quieter )) || 'builtin' 'echo' All branches in your git-replay configuration are up to date
+		return
+	fi
+
+	if ! (( quieter )); then
+		'builtin' 'echo' \\nThe following branches have diverged from their remote tracking branches:
+		for diverged_branch in $diverged_branches; do
+			'builtin' 'echo' $diverged_branch
+		done
+
+		'builtin' 'echo'
+	fi
+
+	# handle diverged branches
+	if ! (( dry_run )); then
+		for diverged_branch in $diverged_branches; do
+			if ! (( force_dediverge )); then
+				if ! read -q "REPLY?Force push \`$diverged_branch' with lease? [y/Y to accept, any other key to skip] "; then
+					'builtin' 'echo'
+					continue
+				fi
+
+				'builtin' 'echo'
+			fi
+
+			if (( quiet )); then
+				git checkout --quiet $diverged_branch
+				git push --force-with-lease --quiet
+			else
+				'builtin' 'print' "git checkout --quiet $diverged_branch"
+				git checkout --quiet $diverged_branch
+				'builtin' 'print' "git push --force-with-lease --quiet"
+				git push --force-with-lease --quiet
+			fi
+		done
+	fi
 }
 
 __git_replay_write_rebase_todos() {
