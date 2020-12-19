@@ -781,7 +781,7 @@ __git_replay_dediverge() {
 	local stage_start_point_path
 	local -a stage_start_point_paths
 
-	__git_replay_print_log Looking for diverged branches...
+	__git_replay_print_log Checking the replay config for diverged branches...
 
 	# get all branches in rebase commands
 	rebase_upstream_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file 'rebase.*')"} )
@@ -832,12 +832,10 @@ __git_replay_dediverge() {
 	fi
 
 	if ! (( quieter )); then
-		'builtin' 'echo' \\nThe following branches have diverged from their remote tracking branches:
+		'builtin' 'echo' The following branches have diverged from their remote tracking branches:
 		for diverged_branch in $diverged_branches; do
 			'builtin' 'echo' $diverged_branch
 		done
-
-		'builtin' 'echo'
 	fi
 
 	# handle diverged branches
@@ -850,8 +848,6 @@ __git_replay_dediverge() {
 				if [[ $reply != 'y' && $reply != 'Y' ]]; then
 					continue
 				fi
-
-				'builtin' 'echo'
 			fi
 
 			if (( quiet )); then
