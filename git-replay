@@ -82,7 +82,7 @@ __git_replay_backup_delete() {
 			if (( quiet )); then
 				git branch --quiet -D $backup_branch
 			else
-				'builtin' 'print' "git branch --quiet -D $backup_branch"
+				'builtin' 'print' "git branch -D $backup_branch"
 				git branch -D $backup_branch
 			fi
 		fi
@@ -858,10 +858,10 @@ __git_replay_dediverge() {
 				git checkout --quiet $diverged_branch
 				git push --force-with-lease --quiet
 			else
-				'builtin' 'print' "git checkout --quiet $diverged_branch"
-				git checkout --quiet $diverged_branch
-				'builtin' 'print' "git push --force-with-lease --quiet"
-				git push --force-with-lease --quiet
+				'builtin' 'print' "git checkout $diverged_branch"
+				git checkout $diverged_branch
+				'builtin' 'print' "git push --force-with-lease"
+				git push --force-with-lease
 			fi
 		done
 	fi
