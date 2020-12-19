@@ -422,9 +422,11 @@ __git_replay_log_divergence() {
 	mkdir -p $dir
 	touch $warning_path
 	'builtin' 'echo' "$branch has diverged from its upstream" >> $warning_path
+	has_diverged_branch=1
 }
 
 __git_replay_main() {
+	local -i auto_dediverge
 	local -i continue
 	local -i dediverge
 	local -i force_dediverge
@@ -469,6 +471,10 @@ __git_replay_main() {
 				;;
 			--back-up)
 				back_up=1
+				shift
+				;;
+			--dediverge)
+				auto_dediverge=1
 				shift
 				;;
 			--dry-run)
@@ -573,6 +579,9 @@ __git_replay_main() {
 				;;
 			dediverge)
 				dediverge=1
+				queue_rebases=0
+				queue_rebase_ontos=0
+				queue_stages=0
 				shift
 				;;
 			# help -- see --help
@@ -606,12 +615,6 @@ __git_replay_main() {
 		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort | --skip)\nIf that is not the case, please\n        rm \".git/$dir_name/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
 	fi
 
-	if (( dediverge )); then
-		__git_replay_dediverge
-		__git_replay_print_log Replay complete
-		return
-	fi
-
 	mkdir -p $dir
 	touch $todo_path
 
@@ -620,16 +623,27 @@ __git_replay_main() {
 	(( queue_stages )) && __git_replay_write_staging_todos
 
 	todos=( ${(f)"$('command' 'cat' $todo_path)"} )
-	for todo in $todos; do
-		__git_replay_do_todo $todo
+	if (( ${#todos} )); then
+		for todo in $todos; do
+			__git_replay_do_todo $todo
+			__git_replay_pop_todo
+		done
+
 		__git_replay_pop_todo
-	done
+		rm $todo_path
 
-	__git_replay_pop_todo
-	rm $todo_path
+		__git_replay_print_log Replay complete
+	fi
 
-	__git_replay_print_log Replay complete
 	__git_replay_warnings && rm $warning_path
+
+	if (( dediverge )); then
+		# if subcommand was 'dediverge'
+		__git_replay_dediverge 1
+	elif (( auto_dediverge && has_diverged_branch )); then
+		# if --dediverge was passed and branches diverged
+		__git_replay_dediverge
+	fi
 
 	[[ -f $todo_path || -f $warning_path ]] || __git_replay_abort
 }
@@ -773,6 +787,7 @@ __git_replay_dediverge() {
 	local rebase_upstream_path
 	local -a rebase_upstream_paths
 	local reply
+	local -i should_log_context
 	local stage_branch
 	local stage_branch_path
 	local -a stage_branch_paths
@@ -781,7 +796,9 @@ __git_replay_dediverge() {
 	local stage_start_point_path
 	local -a stage_start_point_paths
 
-	__git_replay_print_log Checking the replay config for diverged branches...
+	should_log_context=$1
+
+	(( should_log_context )) && __git_replay_print_log Checking the replay config for diverged branches...
 
 	# get all branches in rebase commands
 	rebase_upstream_paths=( ${(f)"$('command' 'yq' r --stripComments --printMode p $file 'rebase.*')"} )
@@ -826,12 +843,12 @@ __git_replay_dediverge() {
 		diverged_branches+=( $branch )
 	done
 
-	if ! (( ${#diverged_branches} )); then
+	if (( should_log_context )) && ! (( ${#diverged_branches} )); then
 		(( quieter )) || 'builtin' 'echo' All branches in your git-replay configuration are up to date
 		return
 	fi
 
-	if ! (( quieter )); then
+	if (( should_log_context )) && ! (( quieter )); then
 		'builtin' 'echo' The following branches have diverged from their remote tracking branches:
 		for diverged_branch in $diverged_branches; do
 			'builtin' 'echo' $diverged_branch
@@ -842,7 +859,7 @@ __git_replay_dediverge() {
 	if ! (( dry_run )); then
 		for diverged_branch in $diverged_branches; do
 			if ! (( force_dediverge )); then
-				'builtin' 'echo' -n "\\nForce push \`$diverged_branch' with lease? [y/Y to accept, any other key to skip] "
+				'builtin' 'echo' -n "\\n\`push --force-with-lease' the branch \`$diverged_branch'? It is up to you to make sure this is safe. [yY to accept, any other key to skip] "
 				read reply
 
 				if [[ $reply != 'y' && $reply != 'Y' ]]; then
@@ -1028,6 +1045,7 @@ file=$root/git-replay.yaml
 'builtin' 'typeset' -i back_up
 'builtin' 'typeset' -A color
 'builtin' 'typeset' -i dry_run
+'builtin' 'typeset' -i has_diverged_branch
 'builtin' 'typeset' -i quiet
 'builtin' 'typeset' -i quieter
 'builtin' 'typeset' -a __git_replay_warnings
