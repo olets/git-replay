@@ -772,6 +772,7 @@ __git_replay_dediverge() {
 	local rebase_upstream
 	local rebase_upstream_path
 	local -a rebase_upstream_paths
+	local reply
 	local stage_branch
 	local stage_branch_path
 	local -a stage_branch_paths
@@ -843,8 +844,10 @@ __git_replay_dediverge() {
 	if ! (( dry_run )); then
 		for diverged_branch in $diverged_branches; do
 			if ! (( force_dediverge )); then
-				if ! read -q "REPLY?Force push \`$diverged_branch' with lease? [y/Y to accept, any other key to skip] "; then
-					'builtin' 'echo'
+				'builtin' 'echo' -n "\\nForce push \`$diverged_branch' with lease? [y/Y to accept, any other key to skip] "
+				read reply
+
+				if [[ $reply != 'y' && $reply != 'Y' ]]; then
 					continue
 				fi
 
