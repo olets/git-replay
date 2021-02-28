@@ -124,7 +124,9 @@ Continues the in-progress replay.
 
 Skips the current action and continues the in-progress replay.
 
-**add**
+**add** ⚠️
+
+> Editing the config file interactively is temporarily unsupported. See [#2](https://github.com/olets/git-replay/issues/2)
 
 ```shell
 git replay add rebase <upstream> <branch>
@@ -164,7 +166,9 @@ For every backup branch, reset the current branch to the backup and then delete 
 
 Any options (e.g. `--quiet`) must be specified ahead of this command.
 
-**delete**
+**delete** ⚠️
+
+> Editing the config file interactively is temporarily unsupported. See [#2](https://github.com/olets/git-replay/issues/2)
 
 ```shell
 git replay delete rebase <upstream> [<branch>]

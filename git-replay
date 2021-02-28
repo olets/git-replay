@@ -21,6 +21,8 @@ __git_replay_abort() {
 }
 
 __git_replay_add_rebase() {
+	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
+
 	local branch
 	local upstream
 
@@ -34,6 +36,8 @@ __git_replay_add_rebase() {
 }
 
 __git_replay_add_rebase_onto() {
+	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
+
 	local branch
 	local upstream
 	local start_point
@@ -49,6 +53,8 @@ __git_replay_add_rebase_onto() {
 }
 
 __git_replay_add_stage() {
+	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
+
 	local branch
 	local upstream
 	local start_point
@@ -121,6 +127,8 @@ __git_replay_backup_restore() {
 }
 
 __git_replay_delete_rebase() {
+	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
+
 	local branch
 	local upstream
 
@@ -139,6 +147,8 @@ __git_replay_delete_rebase() {
 }
 
 __git_replay_delete_rebase_onto() {
+	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
+
 	local branch
 	local newbase
 	local upstream
@@ -165,6 +175,8 @@ __git_replay_delete_rebase_onto() {
 }
 
 __git_replay_delete_stage() {
+	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
+
 	local branch
 	local start_point
 	local upstream
