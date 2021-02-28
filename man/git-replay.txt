@@ -237,7 +237,9 @@ Configuration
 
                         - <branch 2>
 
-                   <upstream 2>: <branch 3>
+                   <upstream 2>:
+
+                        - <branch 3>
 
                    <upstream 4>:
 
@@ -255,7 +257,9 @@ Configuration
 
                    <newbase 2>:
 
-                        <upstream 2>: <branch 3>
+                        <upstream 2>:
+
+                             - <branch 3>
 
               stage:
 
@@ -269,7 +273,9 @@ Configuration
 
                              - <commit 3>
 
-                        <branch 2>: <commit 2>
+                        <branch 2>:
+
+                             - <commit 2>
 
                    <start-point 2>:
 
