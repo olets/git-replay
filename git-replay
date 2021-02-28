@@ -1030,7 +1030,7 @@ fi
 
 readonly SOURCE_PATH=${0:A:h}
 readonly BACKUP_PREFIX="git-replay"
-readonly VERSION=2.2.1
+readonly VERSION=2.3.0
 
 mkdir -p ${TMPDIR:-/tmp/}git-replay
 

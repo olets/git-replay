@@ -285,4 +285,4 @@ AUTHORS
 
 
 
-git-replay 2.2.1               November 22 2020                  GIT-REPLAY(1)
+git-replay 2.3.0               February 28 2021                  GIT-REPLAY(1)

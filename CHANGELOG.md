@@ -1,3 +1,14 @@
+# [2.3.0](https://github.com/olets/git-replay/compare/v2.2.1...v2.3.0) (2021-02-28)
+
+
+### Features
+
+* **backup:** warn if branch was not backed up ([bd2e392](https://github.com/olets/git-replay/commit/bd2e392fe81bbd351a1686d71b573fa79c3cdf8b))
+* **dediverge:** support new feature ([fed9df4](https://github.com/olets/git-replay/commit/fed9df4321727285871ec48ea2dbdfa93455d006)), ([8afa79f](https://github.com/olets/git-replay/commit/8afa79fd5c480cd8d1f168c996238edb2b7d4a55)), ([da3f0f1](https://github.com/olets/git-replay/commit/da3f0f1ebcfbcf89d0b5421afec6c31ef57dd73e)), ([f7567e1](https://github.com/olets/git-replay/commit/f7567e170644dda600f361457a4ed5b99d8670ce))
+* **quiet:** use verbose commands when expected ([01ec3bf](https://github.com/olets/git-replay/commit/01ec3bf09288d3080ace1fb4fd2214929305ffb0))
+
+
+
 # [2.2.1](https://github.com/olets/git-replay/compare/v2.2.0...v2.2.1) (2020-11-22)
 
 
