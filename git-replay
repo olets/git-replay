@@ -32,7 +32,7 @@ __git_replay_add_rebase() {
 	upstream=$1
 
 	# todo! yq4
-	'command' 'yq' w -i $file "rebase.${upstream}[+]" $branch
+	'command' 'yq' w -i $config "rebase.${upstream}[+]" $branch
 }
 
 __git_replay_add_rebase_onto() {
@@ -49,7 +49,7 @@ __git_replay_add_rebase_onto() {
 	upstream=$2
 
 	# todo! yq4
-	'command' 'yq' w -i $file "rebase-onto.$newbase.${upstream}[+]" $branch
+	'command' 'yq' w -i $config "rebase-onto.$newbase.${upstream}[+]" $branch
 }
 
 __git_replay_add_stage() {
@@ -66,7 +66,7 @@ __git_replay_add_stage() {
 	upstream=$2
 
 	# todo! yq4
-	'command' 'yq' w -i $file "stage.$start_point.${upstream}[+]" $branch
+	'command' 'yq' w -i $config "stage.$start_point.${upstream}[+]" $branch
 }
 
 __git_replay_backup_delete() {
@@ -139,10 +139,10 @@ __git_replay_delete_rebase() {
 
 	# todo! yq4
 	if [[ -n $branch ]]; then
-		'command' 'yq' d -i $file rebase.$upstream.$branch
-		(( $(yq e ".rebase.$upstream | length" git-replay.yaml) )) && 'command' 'yq' --inplace eval "del(.rebase.$upstream)" $file
+		'command' 'yq' d -i $config rebase.$upstream.$branch
+		(( $(yq e ".rebase.$upstream | length" git-replay.yaml) )) && 'command' 'yq' --inplace eval "del(.rebase.$upstream)" $config
 	else
-		'command' 'yq' d -i $file rebase.$upstream
+		'command' 'yq' d -i $config rebase.$upstream
 	fi
 }
 
@@ -161,16 +161,16 @@ __git_replay_delete_rebase_onto() {
 
 	# todo! yq4
 	if [[ -n $branch ]]; then
-		'command' 'yq' d -i $file rebase-onto.$newbase.$upstream.$branch
+		'command' 'yq' d -i $config rebase-onto.$newbase.$upstream.$branch
 
-		[[ -z $('command' 'yq' r $file rebase-onto.$newbase.$upstream.\*) ]] && 'command' 'yq' d -i $file rebase-onto.$newbase.$upstream
-		[[ -z $('command' 'yq' r $file rebase-onto.$newbase.\*) ]] && 'command' 'yq' d -i $file rebase-onto.$newbase
+		[[ -z $('command' 'yq' r $config rebase-onto.$newbase.$upstream.\*) ]] && 'command' 'yq' d -i $config rebase-onto.$newbase.$upstream
+		[[ -z $('command' 'yq' r $config rebase-onto.$newbase.\*) ]] && 'command' 'yq' d -i $config rebase-onto.$newbase
 	elif [[ -n $upstream ]]; then
-		'command' 'yq' d -i $file rebase-onto.$newbase.$upstream
+		'command' 'yq' d -i $config rebase-onto.$newbase.$upstream
 
-		[[ -z $('command' 'yq' r $file rebase-onto.$newbase.\*) ]] && 'command' 'yq' d -i $file rebase-onto.$newbase
+		[[ -z $('command' 'yq' r $config rebase-onto.$newbase.\*) ]] && 'command' 'yq' d -i $config rebase-onto.$newbase
 	else
-		'command' 'yq' d -i $file rebase-onto.$newbase
+		'command' 'yq' d -i $config rebase-onto.$newbase
 	fi
 }
 
@@ -189,16 +189,16 @@ __git_replay_delete_stage() {
 
 	# todo! yq4
 	if [[ -n $branch ]]; then
-		'command' 'yq' d -i $file stage.$start_point.$upstream.$branch
+		'command' 'yq' d -i $config stage.$start_point.$upstream.$branch
 
-		[[ -z $('command' 'yq' r $file stage.$start_point.$upstream.\*) ]] && 'command' 'yq' d -i $file stage.$start_point.$upstream
-		[[ -z $('command' 'yq' r $file stage.$start_point.\*) ]] && 'command' 'yq' d -i $file stage.$start_point
+		[[ -z $('command' 'yq' r $config stage.$start_point.$upstream.\*) ]] && 'command' 'yq' d -i $config stage.$start_point.$upstream
+		[[ -z $('command' 'yq' r $config stage.$start_point.\*) ]] && 'command' 'yq' d -i $config stage.$start_point
 	elif [[ -n $upstream ]]; then
-		'command' 'yq' d -i $file stage.$start_point.$upstream
+		'command' 'yq' d -i $config stage.$start_point.$upstream
 
-		[[ -z $('command' 'yq' r $file stage.$start_point.\*) ]] && 'command' 'yq' d -i $file stage.$start_point
+		[[ -z $('command' 'yq' r $config stage.$start_point.\*) ]] && 'command' 'yq' d -i $config stage.$start_point
 	else
-		'command' 'yq' d -i $file stage.$start_point
+		'command' 'yq' d -i $config stage.$start_point
 	fi
 }
 
@@ -445,6 +445,7 @@ __git_replay_log_divergence() {
 
 __git_replay_main() {
 	local -i auto_dediverge
+	local branch
 	local -i continue
 	local -i dediverge
 	local -i force_dediverge
@@ -478,6 +479,10 @@ __git_replay_main() {
 			--abort)
 				__git_replay_abort
 				return
+				;;
+			--branch)
+				branch=$2
+				shift 2
 				;;
 			--continue)
 				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
@@ -624,9 +629,9 @@ __git_replay_main() {
 		esac
 	done
 
-	if ! [[ -f $file ]]; then
-		__git_replay_print_error "Could not find the file $file"
-	fi
+	config=$(git show ${branch:-@}:$file)
+
+	(( $? )) && __git_replay_print_error "Could not find the file $file${branch:+ in branch \`$branch\'}"
 
 	if [[ -f $todo_path ]] && ! (( continue )); then
 		# This error's language follows that given by `git rebase` when a rebase is already in progress
@@ -820,13 +825,13 @@ __git_replay_dediverge() {
 	(( should_log_context )) && __git_replay_print_log Checking the replay config for diverged branches...
 
 	# get all branches in rebase commands
-	branches+=( ${(f)"$('command' 'yq' eval '.rebase.*.[]' $file)"} )
+	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase.*.[]' -)"} )
 
 	# get all branches in rebase-onto commands
-	branches+=( ${(f)"$('command' 'yq' eval '.rebase_onto.*.*.[]' $file)"} )
+	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase_onto.*.*.[]' -)"} )
 
 	# get all branches in stage commands
-	branches+=( ${(f)"$('command' 'yq' eval '.stage.*.[] | path | .[-1]' $file)"} )
+	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.stage.*.[] | path | .[-1]' -)"} )
 
 	# unique-ify
 	typeset -U branches
@@ -883,9 +888,9 @@ __git_replay_write_rebase_todos() {
 	local upstream
 	local -a upstreams
 
-	(( $(yq eval '.rebase | length' $file) )) || return
+	(( $('builtin' 'echo' $config | yq eval '.rebase | length' -) )) || return
 
-	upstreams=( ${(f)"$('command' 'yq' eval '.rebase.* | path | .[-1]' $file)"} )
+	upstreams=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase.* | path | .[-1]' -)"} )
 	for upstream in $upstreams; do
 
 		if ! git show-ref --verify --quiet refs/heads/$upstream; then
@@ -896,7 +901,7 @@ __git_replay_write_rebase_todos() {
 			__git_replay_print_error "There is a problem in the 'rebase.*' configuration.\nFix it and run me again."
 		fi
 
-		branches=( ${(f)"$('command' 'yq' eval ".rebase.$upstream.[]" $file)"} )
+		branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase.$upstream.[]" -)"} )
 		for branch in $branches; do
 			if ! git show-ref --verify --quiet refs/heads/$branch; then
 				# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
@@ -919,9 +924,9 @@ __git_replay_write_rebase_onto_todos() {
 	local newbase
 	local -a newbases
 
-	(( $(yq eval '.rebase_onto | length' $file) )) || return
+	(( $('builtin' 'echo' $config | yq eval '.rebase_onto | length' -) )) || return
 
-	newbases=( ${(f)"$('command' 'yq' eval '.rebase_onto.* | path | .[-1]' $file)"} )
+	newbases=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase_onto.* | path | .[-1]' -)"} )
 	for newbase in $newbases; do
 		if ! git show-ref --verify --quiet refs/heads/$newbase; then
 			# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
@@ -931,7 +936,7 @@ __git_replay_write_rebase_onto_todos() {
 			__git_replay_print_error "There is a problem in the 'rebase-onto.*' configuration.\nFix it and run me again."
 		fi
 
-		upstreams=( ${(f)"$('command' 'yq' eval ".rebase_onto.$newbase.[] | path | .[-1]" $file)"} )
+		upstreams=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase_onto.$newbase.[] | path | .[-1]" -)"} )
 		for upstream in $upstreams; do
 			if ! git show-ref --verify --quiet refs/heads/$upstream; then
 				# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
@@ -941,7 +946,7 @@ __git_replay_write_rebase_onto_todos() {
 				__git_replay_print_error "There is a problem in the 'rebase-onto.$newbase.*' configuration.\nFix it and run me again."
 			fi
 
-			branches=( ${(f)"$('command' 'yq' eval ".rebase_onto.$newbase.$upstream.[]" $file)"} )
+			branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase_onto.$newbase.$upstream.[]" -)"} )
 			for branch in $branches; do
 				if ! git show-ref --verify --quiet refs/heads/$branch; then
 					# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
@@ -965,9 +970,9 @@ __git_replay_write_staging_todos() {
 	local start_point
 	local -a start_points
 
-	(( $(yq eval '.stage | length' $file) )) || return
+	(( $('builtin' 'echo' $config | yq eval '.stage | length' -) )) || return
 
-	start_points=( ${(f)"$('command' 'yq' eval '.stage.* | path | .[-1]' $file)"} )
+	start_points=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.stage.* | path | .[-1]' -)"} )
 	for start_point in $start_points; do
 		if ! git show-ref --verify --quiet refs/heads/$start_point; then
 			# This error's language follows that of `git reset --hard <a nonexistent ref>`
@@ -977,11 +982,11 @@ __git_replay_write_staging_todos() {
 			__git_replay_print_error "There is an error in the 'stage.*' configuration.\nFix it and run me again."
 		fi
 
-		branches=( ${(f)"$('command' 'yq' eval ".stage.$start_point.[] | path | .[-1]" $file)"} )
+		branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".stage.$start_point.[] | path | .[-1]" -)"} )
 		for branch in $branches; do
 			'builtin' 'echo' "stage-start $branch $start_point" >> $todo_path
 
-			commits=( ${(f)"$('command' 'yq' eval ".stage.$start_point.$branch.[]" $file)"} )
+			commits=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".stage.$start_point.$branch.[]" -)"} )
 			for commit in $commits; do
 				if ! git show-ref --verify --quiet refs/heads/$commit; then
 					# This error's language follows that of `git merge --no-ff <a nonexistent ref>`
@@ -1021,7 +1026,8 @@ todo_path=${dir}/git-replay-todos
 warning_path=${dir}/git-replay-warnings
 action_path=${dir}/git-replay-current-action
 
-file=$root/git-replay.yaml
+config=
+file=git-replay.yaml
 
 'builtin' 'typeset' -i back_up
 'builtin' 'typeset' -A color

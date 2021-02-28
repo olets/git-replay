@@ -70,7 +70,8 @@ brew install olets/tap/git-replay
 `git-replay` "replays" configured rebases and stage branch creation. Configuration lives in the `git-replay.yaml` config file (customizable with `--file`). The file is YAML and can have any of the top-level objects `rebase`, `rebase-onto`, and `stage`. (See [Configuration](#configuration).)
 
 ```
-git replay [--file <config file path>] [--back-up] [--dry-run]
+git replay [--file <config file path>] [--branch <branch>]
+          [--back-up] [--dry-run]
           [(--quiet | -q) | (--quieter | -qq)] [--no-color]
           [((--continue | --skip | --continue) | <subcommand>)]
 ```
@@ -102,6 +103,7 @@ git replay backup-restore
 Option | Effect
 ---|---
 `--back-up` | Create a `git-replay/`-prefixed backup branches for every manipulated branch
+`--branch <treeish>` | The branch (or other treeish) from which to read the configuration file
 `--dry-run` | Log commands but do not run them
 `--file <config file path>` | The configuration file to use (defaults to `git-replay.yaml`)
 `--no-color` | Do not colorize output
@@ -114,7 +116,7 @@ Option | Effect
 
 Aborts the in-progress replay. _Unlike `git rebase --abort`, completed actions are not undone._
 
-If `--file <config file path>` is used, it must come before `--abort`. No other options are supported.
+If `--file <config file path>` or `--branch <treeish>` are used, they must come before `--abort`. No other options are supported.
 
 **--continue**
 

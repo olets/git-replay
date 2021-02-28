@@ -3,23 +3,23 @@
 git-replay \- automate Git rebases and stage creation
 .SH SYNOPSIS
 
-\fBgit replay\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay backup-restore\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay backup-restore\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay backup-delete\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay backup-delete\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay add rebase\fR \fI<upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay add rebase\fR \fI<upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay add rebase-onto\fR \fI<newbase> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay add rebase-onto\fR \fI<newbase> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay add stage\fR \fI<start point> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay add stage\fR \fI<start point> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay delete rebase\fR \fI<upstream>\fR [\fI<branch>\fR] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay delete rebase\fR \fI<upstream>\fR [\fI<branch>\fR] [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay delete rebase-onto\fR \fI<newbase>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay delete rebase-onto\fR \fI<newbase>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay delete stage\fR \fI<start point>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay delete stage\fR \fI<start point>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 \fBgit replay\fR (\fBhelp\fR | \fB--help\fR)
 
@@ -34,11 +34,13 @@ merged with a merge commit).
 The following commands are available:
 
 .IP \(bu
-\fBgit replay\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 Run the configured automation.
 
 The \fI--file\fR option specifies the path to the configuration file (default is \fIgit-renew.yaml\fR).
+
+The \fI--branch\fR option specifies the treeish (e.g. branch, commit, tag) from which to read the configuration file.
 
 The \fI--back-up\fR option saves a copy of every branch. Backup branches are
 prefixed with \fIgit-replay/\fR.
@@ -63,32 +65,32 @@ there is no branch "x" to go with the backup branch "git-replay/x"- a
 warning will be printed and the backup branch will not be deleted.
 
 .IP \(bu
-\fBgit replay add rebase\fR \fI<upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay add rebase\fR \fI<upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 Adds to the configuration file the configuration for
 \fBgit rebase <upstream> <branch>\fR.
 
 .IP \(bu
-\fBgit replay add rebase-onto\fR \fI<newbase> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay add rebase-onto\fR \fI<newbase> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 Adds to the configuration file the configuration for
 \fBgit rebase --onto <newbase> <upstream> <branch>\fR.
 
 .IP \(bu
-\fBgit replay add stage\fR \fI<start point> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay add stage\fR \fI<start point> <upstream> <branch>\fR [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 Adds to the configuration file the configuration for
 \fBgit switch -C <upstream> <start point> && git merge --no-ff <branch>\fR.
 
 .IP \(bu
-\fBgit replay delete rebase\fR \fI<upstream>\fR [\fI<branch>\fR] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay delete rebase\fR \fI<upstream>\fR [\fI<branch>\fR] [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 If \fI<branch>\fR is provided, deletes from the configuration file the configuration for \fBgit rebase <upstream> <branch>\fR.
 
 Otherwise deletes from the configuration file all configured \fBrebase --onto\fRs with the \fBnewbase <newbase>\fR.
 
 .IP \(bu
-\fBgit replay delete rebase-onto\fR \fI<newbase>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay delete rebase-onto\fR \fI<newbase>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 If \fI<upstream>\fR \fI<branch>\fR is provided, deletes from the configuration file the configuration for \fBgit rebase --onto <newbase> <upstream> <branch>\fR.
 
@@ -98,7 +100,7 @@ If \fI<branch>\fR is not provided, deletes from the configuration file all confi
 Otherwise deletes from the configuration file all configured \fBrebase --onto\fRs with the \fBnewbase <newbase>\fR.
 
 .IP \(bu
-\fBgit replay delete stage\fR \fI<start point>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay delete stage\fR \fI<start point>\fR [\fI<upstream>\fR [\fI<branch>\fR]] [\fI--file <config file path>\fR] [\fI--branch <treeish>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 If \fI<upstream>\fR \fI<branch>\fR is provided, deletes from the configuration
 file the configuration for
