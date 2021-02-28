@@ -291,4 +291,4 @@ AUTHORS
 
 
 
-git-replay 2.3.0               February 28 2021                  GIT-REPLAY(1)
+git-replay 3.0.0-beta.2        February 28 2021                  GIT-REPLAY(1)
