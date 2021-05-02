@@ -515,7 +515,7 @@ __git_replay_main() {
 				;;
 			--help|\
 			help)
-				'command' 'man' git-replay 2>/dev/null || 'command' 'cat' ${SOURCE_PATH}/man/git-replay.txt | 'command' 'less' -F
+				'command' 'man' git-replay 2>/dev/null || 'command' 'man' ${SOURCE_PATH}/man/man1/git-replay.1
 				return
 				;;
 			--no-color)
