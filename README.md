@@ -22,7 +22,7 @@ Handy if you have several features in progress at once, and find yourself rebasi
 
 ### Homebrew
 
-Recommended. Download and install `git-replay` and its dependency [yq](https://github.com/mikefarah/yq/releases/latest) with one command:
+Recommended. Download and install `git-replay` and its dependency [yq](https://github.com/mikefarah/yq/) with one command:
 
 ```shell
 brew install olets/tap/git-replay
@@ -31,33 +31,18 @@ brew install olets/tap/git-replay
 ### With a shell plugin manager
 
 1. Install [yq](https://github.com/mikefarah/yq)
-1. Add `git-replay` to your shell plugin manager. Tested on zinit but these snippets should all work — if one doesn't, open an issue!
+1. Install git-replay with a zsh plugin manager. Each has their own way of doing things. See your package manager's documentation or the [zsh plugin manager plugin installation procedures gist](https://gist.github.com/olets/06009589d7887617e061481e22cf5a4a). If you're new to zsh plugin management, at this writing zinit is a good choice for its popularity, frequent updates, and great performance.
+
+    After adding the plugin to the manager, restart zsh:
+
     ```shell
-    # antibody: add this to your plugins file
-    olets/git-replay
-
-    # antigen: add this to ~/.zshrc
-    antigen bundle olets/git-replay
-
-    # omz
-    git clone https://github.com/olets/git-replay.git $ZSH_CUSTOM/plugins/git-replay
-    # and then add git-replay to the plugins list in ~/.zshrc
-
-    # zgen: add this to the zgen load function in your ~/.zshrc
-    zgen load olets/git-replay
-
-    # zplug: add this to ~/.zshrc
-    zplug "olets/git-replay", as:command
-
-    # zinit: add this to ~/.zshrc
-    zplugin ice as"program" pick"git-replay"
-    zplugin light olets/git-replay
+    exec zsh
     ```
 
 ### Manual
 
 1. Install [yq](https://github.com/mikefarah/yq)
-1. Download [the latest binary](https://github.com/olets/git-replay/releases/latest)
+1. Download [the latest `git-replay` binary](https://github.com/olets/git-replay/releases/latest)
 1. Put the file `git-replay` in a directory in your `PATH`
 
 ## Requirements
