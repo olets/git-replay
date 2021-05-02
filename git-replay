@@ -445,7 +445,7 @@ __git_replay_log_divergence() {
 
 __git_replay_main() {
 	local -i auto_dediverge
-	local branch
+	local rev
 	local -i continue
 	local -i dediverge
 	local -i force_dediverge
@@ -456,6 +456,7 @@ __git_replay_main() {
 	local -i queue_stages
 	local -a todos
 
+	rev=@
 	queue_rebases=1
 	queue_rebase_ontos=1
 	queue_stages=1
@@ -480,8 +481,8 @@ __git_replay_main() {
 				__git_replay_abort
 				return
 				;;
-			--branch)
-				branch=$2
+			--rev)
+				rev=$2
 				shift 2
 				;;
 			--continue)
@@ -629,9 +630,9 @@ __git_replay_main() {
 		esac
 	done
 
-	config=$(git show ${branch:-@}:$file)
+	config=$(git show $rev:$file)
 
-	(( $? )) && __git_replay_print_error "Could not find the file $file${branch:+ in branch \`$branch\'}"
+	(( $? )) && __git_replay_print_error "Could not find the file $file${rev:+ in rev \`$rev\'}"
 
 	if [[ -f $todo_path ]] && ! (( continue )); then
 		# This error's language follows that given by `git rebase` when a rebase is already in progress
