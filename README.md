@@ -7,6 +7,7 @@ Handy if you have several features in progress at once, and find yourself rebasi
 - [Requirements](#requirements)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Examples](#examples)
   - [Options](#options)
   - [Subcommands](#subcommands)
   - [Handling conflicts](#handling-conflicts)
@@ -56,9 +57,9 @@ brew install olets/tap/git-replay
 
 ```
 git replay [--file <config file path>] [--rev <revision>]
-          [--back-up] [--dry-run]
-          [(--quiet | -q) | (--quieter | -qq)] [--no-color]
-          [((--continue | --skip | --continue) | <subcommand>)]
+           [--back-up] [--dry-run]
+           [(--quiet | -q) | (--quieter | -qq)] [--no-color]
+           [((--continue | --skip | --continue) | <subcommand>)]
 ```
 
 ```
@@ -71,17 +72,58 @@ git replay (--version | -v)
 
 ### Examples
 
-Run the rebases and/or stage creations specified in the configuration file, saving a backup.
+**The basics:**
+
+Run the actions specified in the configuration file, saving a backup.
 
 ```shell
 git replay --back-up
 ```
 
-Something went wrong? Restore the backup.
+Change your mind? Restore the backup.
 
 ```shell
 git replay restore-backup
 ```
+
+**Recommended:**
+
+In most cases it will be desirable to replay the same actions regardless of what branch is checked out when `git replay` is run. Either
+
+- gitignore the configuration file. Now regardless of what commit is checked out you can manage the configuration file and/or run
+
+    ```shell
+    git replay
+    ```
+
+- or always read the configuration from the same revision. In this approach it is possible for collaborators to share a `git-replay` configuration.
+
+    For example to keep the canonical configuration file in `main`:
+
+    ```shell
+    git checkout main
+    # then add, fill out, and commit the configuration file
+    ```
+
+    and when updating the configuration file first check out `main`.
+
+    When running `git-replay`,
+
+    - either run
+        ```shell
+        git replay --rev main
+        ```
+    - or configure Git once
+
+        ```shell
+        git config replay.rev main
+        ```
+
+        and then run
+
+        ```shell
+        git replay
+        ```
 
 ### Options
 
