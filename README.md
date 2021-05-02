@@ -129,10 +129,10 @@ In most cases it will be desirable to replay the same actions regardless of what
 
 Option | Effect
 ---|---
-`--back-up` | Create a `git-replay/`-prefixed backup branches for every manipulated branch
-`--rev <revision>` | The [revision](https://git-scm.com/docs/gitrevisions) from which to read the configuration file (defaults to the checked out commit). You can also configure this as a `git-config` option (see [Option configuration](#option-configuration)).
+`--back-up` | Create `git-replay/`-prefixed backup branches for every manipulated branch
+`--rev <revision>` | The [revision](https://git-scm.com/docs/gitrevisions) from which to read the configuration file (defaults to the checked out commit).<br>You can also configure this as a `git-config` option (see [Option configuration](#option-configuration)).
 `--dry-run` | Log commands but do not run them
-`--file <config file path>` | The configuration file to use (defaults to `git-replay.yaml`). You can also configure this as a `git-config` option (see [Option configuration](#option-configuration)).
+`--file <config file path>` | The configuration file to use (defaults to `git-replay.yaml`).<br>You can also configure this as a `git-config` option (see [Option configuration](#option-configuration)).
 `--no-color` | Do not colorize output
 `--quiet` or `-q` | Quiet standard Git output
 `--quieter` or `-qq` | Quiet standard Git output and git-replay output
@@ -429,7 +429,7 @@ will let you run `git replay` instead of `git replay --rev main`.
 
 ## Related
 
-Inspired by [git-assembler](https://gitlab.com/wavexx/git-assembler), which is “Like ‘make’, for branches.” It's cool, check it out! It also has the flexibility to do more than rebase and create stage branches.
+Inspired by [git-assembler](https://gitlab.com/wavexx/git-assembler), which is “Like ‘make’, for branches.”
 
 ## Contributing
 
