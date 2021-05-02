@@ -229,67 +229,35 @@ If you hit a conflict while replaying, resolve it and then run `git replay --con
 
 `git-replay`'s configuration is a human-readable YAML file, and a handy reference document for keeping track of WIP and how branches relate.
 
-The configuration file takes top-level objects with keys `rebase`, `rebase-onto`, and `stage`. There can be multiple of each and they can be in any order, but _actions will always be run in the following order_:
+The configuration file takes top-level objects with keys `rebase`, `rebase-onto`, and `stage`.
 
-1. All `rebase`s, in the order they appear in the configuration file
-1. All `rebase-onto`s, in the order they appear in the configuration file
-1. All `stage`s, in the order they appear in the configuration file
+> Actions will always be run in the following order:
+> 1. All `rebase`s, in the order they appear in the configuration file
+> 1. Then all `rebase-onto`s, in the order they appear in the configuration file
+> 1. Then all `stage`s, in the order they appear in the configuration file
 
 ### Rebases
 
-To automate
+To automate `rebase`
 
 ```shell
 git rebase <upstream> <branch>
 ```
 
-use the form
-
-```yaml
-rebase:
-  <upstream>:
-    - <branch>
-```
-
-or
+use
 
 ```yaml
 rebase:
   <upstream>: <branch>
 ```
 
-To automate
-
-```shell
-git rebase <upstream> <branch1>
-git rebase <upstream> <branch2>
-```
-
-use the form
-
-```yaml
-rebase:
-  <upstream>:
-    - <branch1>
-    - <branch2>
-```
-
-To automate
+To automate `rebase --onto`
 
 ```shell
 git rebase --onto <newbase> <upstream> <branch>
 ```
 
-use the form
-
-```yaml
-rebase-onto:
-  <newbase>:
-    <upstream>:
-      - <branch>
-```
-
-or, if there's only one <branch>
+use
 
 ```yaml
 rebase-onto:
@@ -297,55 +265,27 @@ rebase-onto:
     <upstream>: <branch>
 ```
 
-To automate
-
-```shell
-git rebase --onto <newbase> <upstream> <branch1>
-git rebase --onto <newbase> <upstream> <branch2>
-```
-
-use the form
+Configure any number of rebases. List notation and square bracket array notations are supported.
 
 ```yaml
-rebase-onto:
-  <newbase>:
-    <upstream>:
-      - <branch1>
-      - <branch2>
-```
-
-For example, to automate
-
-```shell
-git rebase main feature-1
-git rebase main feature-2
-git rebase feature-2 feature-4
-git rebase main next
-git rebase --onto feature-2 feature-2@{u} feature-2b
-git rebase --onto next next@{u} feature-3
-```
-
-use
-
-```yaml
-# git-replay.yaml
 rebase:
   main:
     - feature-1
     - feature-2
-    - next
-  feature-2:
-    - feature-4
-rebase-onto:
-  feature-2:
-    feature-2@{u}:
-      - feature-2b
-  next:
-    next@{u}:
-      - feature-3
 ```
 
-(Note that array notation `a: [b, c]` is not supported.)
+```yaml
+rebase:
+  main: [feature-1, feature-2]
+```
+
+```yaml
+rebase:
+  main: feature-1
+  mybase:
+    - myfeature
+    - another
+```
 
 ### Stages
 
@@ -353,51 +293,37 @@ To automate
 
 ```shell
 git switch -C <branch> <start-point>
-				# aka `git checkout -B <branch> <start-point>`
+        # aka `git checkout -B <branch> <start-point>`
         # aka `git checkout <branch> && git reset --hard <start-point>
 git commit --no-ff <commit-1>
-git commit --no-ff <commit-2>
 ```
 
 use the form
 
 ```yaml
 <start-point>:
-  <branch>:
-    - <commit-1>
-    - <commit-2>
+  <branch>: <commit-1>
 ```
 
-For example, to automate
-
-```shell
-git switch -C development main
-				# aka `git checkout -B development main`
-        # aka `git checkout development && git reset --hard main`
-git commit --no-ff feature-1
-git commit --no-ff feature-2
-git switch -C staging main
-				# aka `git checkout -B staging main`
-        # aka `git checkout staging && git reset --hard main`
-git commit --no-ff feature-1
-git commit --no-ff feature-3
-```
-
-use
+Configure any number of stages. List and square bracket array notations are supported.
 
 ```yaml
-# git-replay.yaml
 stage:
   main:
     development:
       - feature-1
-      - feature-2
-    staging:
-      - feature-1
       - feature-3
+    staging: [feature-1, feature-2]
 ```
 
-(Note that array notation `a: [b, c]` is not supported.)
+```yaml
+stage:
+  main:
+    development: feature-1
+    staging: feature-2
+  mybranch:
+    mystage: myfeature
+```
 
 ## Option configuration
 
