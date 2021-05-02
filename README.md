@@ -81,7 +81,7 @@ git replay --back-up
 Something went wrong? Restore the backup.
 
 ```shell
-git replay backup-restore
+git replay restore-backup
 ```
 
 ### Options
@@ -122,18 +122,6 @@ Delete all backup branches. _Backup branches are defined as those with the prefi
 
 Any options (e.g. `--quiet`) must be specified ahead of this command.
 
-**backup-restore**
-
-```shell
-git replay backup-restore
-```
-
-Reset every configured branch to its `git-replay/`-prefixed backup, and then delete all backups.
-
-For every backup branch, reset the current branch to the backup and then delete the backup branch. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
-
-Any options (e.g. `--quiet`) must be specified ahead of this command.
-
 **help**
 
 ```shell
@@ -157,6 +145,18 @@ git replay rebase-onto
 ```
 
 Replay only the configured `git rebase --onto`s. Does not include configured non-`--onto` `git rebase`s.
+
+**restore-backup**
+
+```shell
+git replay restore-backup
+```
+
+Reset every configured branch to its `git-replay/`-prefixed backup, and then delete all backups.
+
+For every backup branch, reset the current branch to the backup and then delete the backup branch. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
+
+Any options (e.g. `--quiet`) must be specified ahead of this command.
 
 **stage**
 

@@ -49,34 +49,6 @@ __git_replay_backup_delete() {
 	done
 }
 
-__git_replay_backup_restore() {
-	local branch
-	local backup_branch
-	local -a backup_branches
-
-	backup_branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
-	[[ -z $backup_branches ]] && __git_replay_print_warning "No backup branches found" && return
-
-	__git_replay_print_log "Restoring backed up branches"
-
-	for backup_branch in $backup_branches; do
-		branch=${backup_branch#$BACKUP_PREFIX/}
-
-		if git show-ref --verify --quiet refs/heads/$branch; then
-			__git_replay_print_log "Restoring $branch"
-
-			if (( quiet )); then
-				git checkout --quiet -B $branch $backup_branch
-			else
-				'builtin' 'print' "git checkout -B $branch $backup_branch"
-				git checkout -B $branch $backup_branch
-			fi
-		fi
-	done
-
-	__git_replay_backup_delete
-}
-
 __git_replay_diverged $branch() {
 	local branch
 	local sha
@@ -426,11 +398,6 @@ __git_replay_main() {
 				__git_replay_warnings && rm $warning_path
 				return
 				;;
-			backup-restore)
-				__git_replay_backup_restore
-				__git_replay_warnings && rm $warning_path
-				return
-				;;
 			dediverge)
 				dediverge=1
 				queue_rebases=0
@@ -448,6 +415,11 @@ __git_replay_main() {
 				queue_rebases=0
 				queue_stages=0
 				shift
+				;;
+			restore-backup)
+				__git_replay_restore_backup
+				__git_replay_warnings && rm $warning_path
+				return
 				;;
 			stage)
 				queue_rebases=0
@@ -606,6 +578,34 @@ __git_replay_rebase_continue() {
 	(( quiet )) || 'builtin' 'print' "git commit --no-edit && git rebase --continue"
 	git commit --no-edit || __git_replay_print_error "Cannot continue"
 	git rebase --continue || __git_replay_rebase_continue $? $upstream $branch $newbase
+}
+
+__git_replay_restore_backup() {
+	local branch
+	local backup_branch
+	local -a backup_branches
+
+	backup_branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
+	[[ -z $backup_branches ]] && __git_replay_print_warning "No backup branches found" && return
+
+	__git_replay_print_log "Restoring backed up branches"
+
+	for backup_branch in $backup_branches; do
+		branch=${backup_branch#$BACKUP_PREFIX/}
+
+		if git show-ref --verify --quiet refs/heads/$branch; then
+			__git_replay_print_log "Restoring $branch"
+
+			if (( quiet )); then
+				git checkout --quiet -B $branch $backup_branch
+			else
+				'builtin' 'print' "git checkout -B $branch $backup_branch"
+				git checkout -B $branch $backup_branch
+			fi
+		fi
+	done
+
+	__git_replay_backup_delete
 }
 
 __git_replay_warnings() {

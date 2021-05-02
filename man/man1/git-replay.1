@@ -5,9 +5,9 @@ git-replay \- automate Git rebases and stage creation
 
 \fBgit replay\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay backup-restore\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
-
 \fBgit replay backup-delete\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+
+\fBgit replay restore-backup\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 \fBgit replay\fR (\fBhelp\fR | \fB--help\fR)
 
@@ -42,7 +42,7 @@ there is no branch "x" to go with the backup branch "git-replay/x"- a warning
 will be printed and the backup branch will not be deleted.
 
 .IP \(bu
-\fBgit replay backup-restore\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR] [\fI--no-color\fR]
+\fBgit replay restore-backup\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR] [\fI--no-color\fR]
 
 Reset every configured branch to its \fBgit-replay/\fR-prefixed backup, and then delete all backups.
 
