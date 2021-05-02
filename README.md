@@ -4,8 +4,8 @@ Automate the rebasing of Git branches and creation of "stage" branches (ie branc
 
 Handy if you have several features in progress at once, and find yourself rebasing feature branches and recreating stage branches every time there's a significant change in the trunk.
 
-- [Installation](#installation)
 - [Requirements](#requirements)
+- [Installation](#installation)
 - [Usage](#usage)
   - [Options](#options)
   - [Subcommands](#subcommands)
@@ -16,6 +16,11 @@ Handy if you have several features in progress at once, and find yourself rebasi
 - [Contributing](#contributing)
 - [License](#license)
 
+## Requirements
+
+- Git
+- [yq](https://github.com/mikefarah/yq) (installed for you if you install `git-replay` with Homebrew, as detailed below)
+- zsh (does not need to be your default interactive shell, just needs to be installed)
 ## Installation
 
 ***Homebrew*** is the recommended installation method.
@@ -44,12 +49,6 @@ brew install olets/tap/git-replay
 1. Install [yq](https://github.com/mikefarah/yq)
 1. Download [the latest `git-replay` binary](https://github.com/olets/git-replay/releases/latest)
 1. Put the file `git-replay` in a directory in your `PATH`
-
-## Requirements
-
-- Git
-- [yq](https://github.com/mikefarah/yq)
-- zsh (does not need to be your default interactive shell, just needs to be installed)
 
 ## Usage
 
