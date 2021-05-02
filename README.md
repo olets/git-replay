@@ -10,7 +10,8 @@ Handy if you have several features in progress at once, and find yourself rebasi
   - [Options](#options)
   - [Subcommands](#subcommands)
   - [Handling conflicts](#handling-conflicts)
-- [Configuration](#configuration)
+- [Action configuration](#action-configuration)
+- [Option configuration](#option-configuration)
 - [Related](#related)
 - [Contributing](#contributing)
 - [License](#license)
@@ -103,9 +104,9 @@ git replay backup-restore
 Option | Effect
 ---|---
 `--back-up` | Create a `git-replay/`-prefixed backup branches for every manipulated branch
-`--rev <revision>` | The [revision](https://git-scm.com/docs/gitrevisions) from which to read the configuration file
+`--rev <revision>` | The [revision](https://git-scm.com/docs/gitrevisions) from which to read the configuration file (defaults to the checked out commit). You can also configure this as a `git-config` option (see [Option configuration](#option-configuration)).
 `--dry-run` | Log commands but do not run them
-`--file <config file path>` | The configuration file to use (defaults to `git-replay.yaml`)
+`--file <config file path>` | The configuration file to use (defaults to `git-replay.yaml`). You can also configure this as a `git-config` option (see [Option configuration](#option-configuration)).
 `--no-color` | Do not colorize output
 `--quiet` or `-q` | Quiet standard Git output
 `--quieter` or `-qq` | Quiet standard Git output and git-replay output
@@ -248,7 +249,7 @@ To enable `git-rerere`, run `git config rerere.enabled true`.
 
 If you hit a conflict while replaying, resolve it and then run `git replay --continue`. `git-replay` will have `git-rerere` record the resolution and then will continue the replay.
 
-## Configuration
+## Action configuration
 
 `git-replay`'s configuration is a human-readable YAML file, and a handy reference document for keeping track of WIP and how branches relate.
 
@@ -423,6 +424,34 @@ stage:
 ```
 
 (Note that array notation `a: [b, c]` is not supported.)
+
+## Option configuration
+
+`git-replay` supports [`git-config`](https://git-scm.com/docs/git-config).
+
+### File
+
+Set `git config [--global] replay.file` to use a custom `file` without passing the `--file` parameter.
+
+For example
+
+```shell
+git config --global replay.file ./config/git-replay.yaml`
+```
+
+will let you run `git replay` in place of `git replay --file ./config/git-replay.yaml`.
+
+### Rev
+
+Set `git config [--global] replay.rev` to specify a revision without passing the `--rev` parameter.
+
+For example
+
+```shell
+git config --global replay.rev main
+```
+
+will let you run `git replay` instead of `git replay --rev main`.
 
 ## Related
 

@@ -140,7 +140,7 @@ The \fI--quieter\fR option additionally suppresses most git-replay output.
 The \fI--dry-run\fR option logs (unless quieter is set) but does not
 run commands.
 
-.SH Configuration
+.SH Action Configuration
 Configure automation in the YAML configuration file, by default
 \fIgit-replay.yaml\fR in the repo root directory.
 
@@ -238,6 +238,16 @@ stage:
 			- <commit 1>
 
 			- <commit 4>
+
+.SH Option Configuation
+
+Set a custom default file with
+
+	\fbgit config replay.file <file>\fR
+
+Set a custom default revision with
+
+	\fbgit config replay.rev <revision>\fR
 
 .SH AUTHORS
 

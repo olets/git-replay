@@ -456,7 +456,7 @@ __git_replay_main() {
 	local -i queue_stages
 	local -a todos
 
-	rev=@
+	rev=${$(git config replay.rev):-@}
 	queue_rebases=1
 	queue_rebase_ontos=1
 	queue_stages=1
@@ -1028,7 +1028,7 @@ warning_path=${dir}/git-replay-warnings
 action_path=${dir}/git-replay-current-action
 
 config=
-file=git-replay.yaml
+file=${$(git config replay.file):-git-replay.yaml}
 
 'builtin' 'typeset' -i back_up
 'builtin' 'typeset' -A color
