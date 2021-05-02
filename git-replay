@@ -20,7 +20,7 @@ __git_replay_abort() {
 	rm -rf $dir
 }
 
-__git_replay_backup_delete() {
+__git_replay_delete_backup() {
 	local branch
 	local backup_branch
 	local -a backup_branches
@@ -393,17 +393,17 @@ __git_replay_main() {
 				'builtin' 'printf' "git-replay version %s\n" "$VERSION"
 				return
 				;;
-			backup-delete)
-				__git_replay_backup_delete
-				__git_replay_warnings && rm $warning_path
-				return
-				;;
 			dediverge)
 				dediverge=1
 				queue_rebases=0
 				queue_rebase_ontos=0
 				queue_stages=0
 				shift
+				;;
+			delete-backup)
+				__git_replay_delete_backup
+				__git_replay_warnings && rm $warning_path
+				return
 				;;
 			# help -- see --help
 			rebase)
@@ -605,7 +605,7 @@ __git_replay_restore_backup() {
 		fi
 	done
 
-	__git_replay_backup_delete
+	__git_replay_delete_backup
 }
 
 __git_replay_warnings() {

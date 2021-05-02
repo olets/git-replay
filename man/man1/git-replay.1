@@ -5,7 +5,7 @@ git-replay \- automate Git rebases and stage creation
 
 \fBgit replay\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
-\fBgit replay backup-delete\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
+\fBgit replay delete-backup\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
 \fBgit replay restore-backup\fR [\fI--file <config file path>\fR] [\fI--rev <revision>\fR] [\fI--back-up\fR] [\fI--dry-run\fR] [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--no-color\fR]
 
@@ -34,7 +34,7 @@ The \fI--back-up\fR option saves a copy of every branch. Backup branches are
 prefixed with \fIgit-replay/\fR.
 
 .IP \(bu
-\fBgit replay backup-delete\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR] [\fI--no-color\fR]
+\fBgit replay delete-backup\fR [(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)] [\fI--dry-run\fR] [\fI--no-color\fR]
 
 Delete all backup branches. \fIBackup branches are defined as those with the
 prefix "git-replay/".\fR If the backed up branch is not found -for example if

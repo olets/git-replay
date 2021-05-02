@@ -112,10 +112,10 @@ Continues the in-progress replay.
 
 Skips the current action and continues the in-progress replay.
 
-**backup-delete**
+**delete-backup**
 
 ```shell
-git replay backup-delete
+git replay delete-backup
 ```
 
 Delete all backup branches. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
