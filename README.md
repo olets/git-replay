@@ -112,26 +112,6 @@ Continues the in-progress replay.
 
 Skips the current action and continues the in-progress replay.
 
-**add** ⚠️
-
-> Editing the config file interactively is temporarily unsupported. See [#2](https://github.com/olets/git-replay/issues/2)
-
-```shell
-git replay add rebase <upstream> <branch>
-git replay add rebase-onto <newbase> <upstream> <branch>
-git replay add stage <start-point> <upstream> <branch>
-```
-
-`git-replay` uses a YAML config file, so editing the file directly is a good experience. But there is a CLI too.
-
-`git replay add rebase <upstream> <branch>` adds to the configuration file the configuration for `git rebase <upstream> <branch>`.
-
-`git replay add rebase-onto <newbase> <upstream> <branch>` adds to the configuration file the configuration for `git rebase --onto <newbase> <upstream> <branch>`.
-
-`git replay add stage <start point> <upstream> <branch>` adds to the configuration file the configuration for `git switch -C <upstream> <start point> && git merge --no-ff <branch>`.
-
-Any options (e.g. `--quiet`) must be specified ahead of this command.
-
 **backup-delete**
 
 ```shell
@@ -151,36 +131,6 @@ git replay backup-restore
 Reset every configured branch to its `git-replay/`-prefixed backup, and then delete all backups.
 
 For every backup branch, reset the current branch to the backup and then delete the backup branch. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
-
-Any options (e.g. `--quiet`) must be specified ahead of this command.
-
-**delete** ⚠️
-
-> Editing the config file interactively is temporarily unsupported. See [#2](https://github.com/olets/git-replay/issues/2)
-
-```shell
-git replay delete rebase <upstream> [<branch>]
-git replay delete rebase-onto <newbase> [<upstream> [<branch>]]
-git replay delete stage <start-point> [<upstream> [<branch>]]
-```
-
-`git-replay` uses a YAML config file, so editing the file directly is a good experience. But there is a CLI too.
-
-`git replay delete rebase <upstream>` deletes from the configuration file all configured `rebase`s off `<upstream>`.
-
-`git replay delete rebase <upstream> <branch>` deletes from the configuration file the configuration for `git rebase <upstream> <branch>`.
-
-`git replay delete rebase-onto <newbase>` deletes from the configuration file all configured `rebase --onto`s with the `newbase` `<newbase>`.
-
-`git replay delete rebase-onto <newbase> <upstream>` deletes from the configuration file all configured `rebase --onto`s with the `newbase` `<newbase>` and `upstream` `<upstream>`.
-
-`git replay delete rebase-onto <newbase> <upstream> <branch>` deletes from the configuration file the configuration for `git rebase --onto <newbase> <upstream> <branch>`.
-
-`git replay delete stage <start point>` deletes from the configuration file all configured "stages" with the "start point" `<start point>`.
-
-`git replay delete stage <start point> <upstream>` deletes from the configuration file all "stages" with the "start point" `<start point>` and `upstream` `<upstream>`.
-
-`git replay delete stage <start point> <upstream> <branch>` deletes the configuration for `git checkout -B <upstream> <start point> && git merge --no-ff <branch>`.
 
 Any options (e.g. `--quiet`) must be specified ahead of this command.
 
@@ -237,8 +187,6 @@ If you hit a conflict while replaying, resolve it and then run `git replay --con
 ## Action configuration
 
 `git-replay`'s configuration is a human-readable YAML file, and a handy reference document for keeping track of WIP and how branches relate.
-
-You can manage the file from the command line with `git replay add` and `git replay delete`. Editing the file directly may be an even better experience.
 
 The configuration file takes top-level objects with keys `rebase`, `rebase-onto`, and `stage`. There can be multiple of each and they can be in any order, but _actions will always be run in the following order_:
 

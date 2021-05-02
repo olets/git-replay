@@ -20,55 +20,6 @@ __git_replay_abort() {
 	rm -rf $dir
 }
 
-__git_replay_add_rebase() {
-	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
-
-	local branch
-	local upstream
-
-	[[ $# < 2 ]] && __git_replay_print_error "Requires two arguments (upstream and branch)"
-
-	branch=$2
-	upstream=$1
-
-	# todo! yq4
-	'command' 'yq' w -i $config "rebase.${upstream}[+]" $branch
-}
-
-__git_replay_add_rebase_onto() {
-	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
-
-	local branch
-	local upstream
-	local start_point
-
-	[[ $# < 3 ]] && __git_replay_print_error "Requires three arguments (newbase, upstream, and branch)"
-
-	branch=$3
-	newbase=$1
-	upstream=$2
-
-	# todo! yq4
-	'command' 'yq' w -i $config "rebase-onto.$newbase.${upstream}[+]" $branch
-}
-
-__git_replay_add_stage() {
-	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
-
-	local branch
-	local upstream
-	local start_point
-
-	[[ $# < 3 ]] && __git_replay_print_error "Requires three arguments (starting point, upstream, and branch)"
-
-	branch=$3
-	start_point=$1
-	upstream=$2
-
-	# todo! yq4
-	'command' 'yq' w -i $config "stage.$start_point.${upstream}[+]" $branch
-}
-
 __git_replay_backup_delete() {
 	local branch
 	local backup_branch
@@ -124,82 +75,6 @@ __git_replay_backup_restore() {
 	done
 
 	__git_replay_backup_delete
-}
-
-__git_replay_delete_rebase() {
-	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
-
-	local branch
-	local upstream
-
-	(( $# )) || __git_replay_print_error "Requires one to two arguments (upstream, branch)"
-
-	branch=$2
-	upstream=$1
-
-	# todo! yq4
-	if [[ -n $branch ]]; then
-		'command' 'yq' d -i $config rebase.$upstream.$branch
-		(( $(yq e ".rebase.$upstream | length" git-replay.yaml) )) && 'command' 'yq' --inplace eval "del(.rebase.$upstream)" $config
-	else
-		'command' 'yq' d -i $config rebase.$upstream
-	fi
-}
-
-__git_replay_delete_rebase_onto() {
-	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
-
-	local branch
-	local newbase
-	local upstream
-
-	(( $# )) || __git_replay_print_error "Requires one to three arguments (newbase, upstream, and branch)"
-
-	branch=$3
-	newbase=$1
-	upstream=$2
-
-	# todo! yq4
-	if [[ -n $branch ]]; then
-		'command' 'yq' d -i $config rebase-onto.$newbase.$upstream.$branch
-
-		[[ -z $('command' 'yq' r $config rebase-onto.$newbase.$upstream.\*) ]] && 'command' 'yq' d -i $config rebase-onto.$newbase.$upstream
-		[[ -z $('command' 'yq' r $config rebase-onto.$newbase.\*) ]] && 'command' 'yq' d -i $config rebase-onto.$newbase
-	elif [[ -n $upstream ]]; then
-		'command' 'yq' d -i $config rebase-onto.$newbase.$upstream
-
-		[[ -z $('command' 'yq' r $config rebase-onto.$newbase.\*) ]] && 'command' 'yq' d -i $config rebase-onto.$newbase
-	else
-		'command' 'yq' d -i $config rebase-onto.$newbase
-	fi
-}
-
-__git_replay_delete_stage() {
-	__git_replay_print_warning "Editing the config file interactively is temporarily unsupported. See https://github.com/olets/git-replay/issues/2" && return
-
-	local branch
-	local start_point
-	local upstream
-
-	(( $# )) || __git_replay_print_error "Requires one to three arguments (starting point, upstream, and branch)"
-
-	branch=$3
-	start_point=$1
-	upstream=$2
-
-	# todo! yq4
-	if [[ -n $branch ]]; then
-		'command' 'yq' d -i $config stage.$start_point.$upstream.$branch
-
-		[[ -z $('command' 'yq' r $config stage.$start_point.$upstream.\*) ]] && 'command' 'yq' d -i $config stage.$start_point.$upstream
-		[[ -z $('command' 'yq' r $config stage.$start_point.\*) ]] && 'command' 'yq' d -i $config stage.$start_point
-	elif [[ -n $upstream ]]; then
-		'command' 'yq' d -i $config stage.$start_point.$upstream
-
-		[[ -z $('command' 'yq' r $config stage.$start_point.\*) ]] && 'command' 'yq' d -i $config stage.$start_point
-	else
-		'command' 'yq' d -i $config stage.$start_point
-	fi
 }
 
 __git_replay_diverged $branch() {
@@ -546,30 +421,6 @@ __git_replay_main() {
 				'builtin' 'printf' "git-replay version %s\n" "$VERSION"
 				return
 				;;
-			add)
-				shift
-				case $1 in
-					rebase)
-						shift
-						__git_replay_add_rebase $@
-						return
-						;;
-					rebase-onto)
-						shift
-						__git_replay_add_rebase_onto $@
-						;;
-					stage)
-						shift
-						__git_replay_add_stage $@
-						return
-						;;
-					*)
-						__git_replay_print_error "git-replay 'add' requires 'rebase', 'rebase-onto', or 'stage'"
-						return
-						;;
-				esac
-				return
-				;;
 			backup-delete)
 				__git_replay_backup_delete
 				__git_replay_warnings && rm $warning_path
@@ -578,27 +429,6 @@ __git_replay_main() {
 			backup-restore)
 				__git_replay_backup_restore
 				__git_replay_warnings && rm $warning_path
-				return
-				;;
-			delete)
-				shift
-				case $1 in
-					rebase)
-						shift
-						__git_replay_delete_rebase $@
-						;;
-					rebase-onto)
-						shift
-						__git_replay_delete_rebase_onto $@
-						;;
-					stage)
-						shift
-						__git_replay_delete_stage $@
-						;;
-					*)
-						__git_replay_print_error "git-replay 'delete' requires 'rebase', 'rebase-onto', or 'stage'"
-						;;
-				esac
 				return
 				;;
 			dediverge)
