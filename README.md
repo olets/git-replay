@@ -303,6 +303,18 @@ rebase:
     - another
 ```
 
+> Tip: leverage [`@{u}`](https://www.git-scm.com/docs/gitrevisions#Documentation) (or [`@{push}`](https://www.git-scm.com/docs/gitrevisions#Documentation) in triangular workflows) and `rebase-onto` to manage stacked branches.
+>
+> ```yaml
+> rebase:
+>   main:
+>     - feature-1
+> rebase-onto:
+>   feature-1:
+>     feature-1@{u}:
+>       - feature-2
+> ```
+
 ### Stages
 
 To automate
