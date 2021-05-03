@@ -49,14 +49,14 @@ __git_replay_delete_backup() {
 	done
 }
 
-__git_replay_diverged $branch() {
+__git_replay_diverged() {
 	local branch
 	local sha
 	local remote_sha
 
 	branch=$1
 	sha=$(git rev-parse $branch)
-	remote_sha=$(git rev-parse $branch@{u} 2>/dev/null)
+	remote_sha=$(git rev-parse $branch@{push} 2>/dev/null)
 
 	[[ -n $sha && -n $remote_sha && $sha != $remote_sha ]]
 }
@@ -286,7 +286,7 @@ __git_replay_log_divergence() {
 
 	mkdir -p $dir
 	touch $warning_path
-	'builtin' 'echo' "$branch has diverged from its upstream" >> $warning_path
+	'builtin' 'echo' "$branch has diverged from its push destination" >> $warning_path
 	has_diverged_branch=1
 }
 
