@@ -57,9 +57,9 @@ brew install olets/tap/git-replay
 
 ```
 git replay [--file <config file path>] [--rev <revision>]
-           [--back-up] [--dry-run]
-           [(--quiet | -q) | (--quieter | -qq)] [--no-color]
-           [((--continue | --skip | --continue) | <subcommand>)]
+    [--back-up] [--dry-run]
+    [(--quiet | -q) | (--quieter | -qq)] [--no-color]
+    [((--continue | --skip | --continue) | <subcommand>)]
 ```
 
 ```
@@ -90,11 +90,9 @@ git replay restore-backup
 
 In most cases it will be desirable to replay the same actions regardless of what branch is checked out when `git replay` is run. Either
 
-- gitignore the configuration file. Now regardless of what commit is checked out you can manage the configuration file and/or run
+- gitignore the configuration file. Now regardless of what commit is checked out you can manage the configuration file and/or run `git replay [...]`
 
-    ```shell
-    git replay
-    ```
+    > For this to work, there must be no revision configured (see [Options](#options)). If you have configured a default revision globally (e.g. with `git config --global replay.rev <revision>`) you will need to nullify it locally (e.g. with `git config replay.rev ''`).
 
 - or always read the configuration from the same revision. In this approach it is possible for collaborators to share a `git-replay` configuration.
 
@@ -111,7 +109,7 @@ In most cases it will be desirable to replay the same actions regardless of what
 
     - either run
         ```shell
-        git replay --rev main
+        git replay --rev main [...]
         ```
     - or configure Git once
 
@@ -122,7 +120,7 @@ In most cases it will be desirable to replay the same actions regardless of what
         and then run
 
         ```shell
-        git replay
+        git replay [...]
         ```
 
 ### Options

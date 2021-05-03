@@ -295,6 +295,7 @@ __git_replay_main() {
 	local rev
 	local -i continue
 	local -i dediverge
+	local -i exit_code
 	local -i force_dediverge
 	local -i no_color
 	local opt
@@ -303,7 +304,7 @@ __git_replay_main() {
 	local -i queue_stages
 	local -a todos
 
-	rev=${$(git config replay.rev):-@}
+	rev=$(git config replay.rev)
 	queue_rebases=1
 	queue_rebase_ontos=1
 	queue_stages=1
@@ -432,9 +433,15 @@ __git_replay_main() {
 		esac
 	done
 
-	config=$(git show $rev:$file)
+	if [[ -n $rev ]]; then
+		config=$(git show $rev:$file)
+		exit_code=$?
+	else
+		config=$(cat $file)
+		exit_code=$?
+	fi
 
-	(( $? )) && __git_replay_print_error "Could not find the file $file${rev:+ in rev \`$rev\'}"
+	(( exit_code )) && __git_replay_print_error "Could not find the file $file${rev:+ in rev \`$rev\'}"
 
 	if [[ -f $todo_path ]] && ! (( continue )); then
 		# This error's language follows that given by `git rebase` when a rebase is already in progress
