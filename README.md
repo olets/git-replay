@@ -137,21 +137,39 @@ Option | Effect
 
 ### Subcommands
 
-**--abort**
+#### --abort
 
 Aborts the in-progress replay. _Unlike `git rebase --abort`, completed actions are not undone._
 
 If `--file <config file path>` or `--rev <revision>` are used, they must come before `--abort`. No other options are supported.
 
-**--continue**
+#### --continue
 
 Continues the in-progress replay.
 
-**--skip**
+#### --dediverge [--force]
+
+Run [`git replay dediverge`](#dediverge) after completing the replay.
+
+Largely equivalent to following the replay with `git replay dediverge` but with less repetition in the logs.
+
+Add `--force` to skip the prompt.
+
+#### --skip
 
 Skips the current action and continues the in-progress replay.
 
-**delete-backup**
+#### dediverge
+
+```shell
+git replay dediverge [--force]
+```
+
+Identifies all manipulated branches (i.e. `<branch>`es in `rebase`s, and `<branch>`es and `<commit>`s in `stage`s) that have diverged from their push destinations (aka [`@{push}`](https://www.git-scm.com/docs/gitrevisions#Documentation)), and offers to [`git push --force-with-lease`](https://git-scm.com/docs/git-push) each.
+
+Add `--force` to not prompt before force pushing.
+
+#### delete-backup
 
 ```shell
 git replay delete-backup
@@ -161,7 +179,7 @@ Delete all backup branches. _Backup branches are defined as those with the prefi
 
 Any options (e.g. `--quiet`) must be specified ahead of this command.
 
-**help**
+#### help
 
 ```shell
 git replay (help | --help)
@@ -169,7 +187,7 @@ git replay (help | --help)
 
 Show the manpage.
 
-**rebase**
+#### rebase
 
 ```shell
 git replay rebase
@@ -177,7 +195,7 @@ git replay rebase
 
 Replay only the configured `git rebase`s. Does not include configured `git rebase --onto`s.
 
-**rebase-onto**
+#### rebase-onto
 
 ```shell
 git replay rebase-onto
@@ -185,7 +203,7 @@ git replay rebase-onto
 
 Replay only the configured `git rebase --onto`s. Does not include configured non-`--onto` `git rebase`s.
 
-**restore-backup**
+#### restore-backup
 
 ```shell
 git replay restore-backup
@@ -197,7 +215,7 @@ For every backup branch, reset the current branch to the backup and then delete 
 
 Any options (e.g. `--quiet`) must be specified ahead of this command.
 
-**stage**
+#### stage
 
 ```shell
 git replay stage
@@ -205,7 +223,7 @@ git replay stage
 
 Replay only the configured "stages".
 
-**version**
+#### version
 
 ```shell
 git replay (--version | -v)
