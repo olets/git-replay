@@ -666,7 +666,7 @@ __git_replay_dediverge() {
 	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase.*.[]' -)"} )
 
 	# get all branches in rebase-onto commands
-	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase_onto.*.*.[]' -)"} )
+	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase-onto.*.*.[]' -)"} )
 
 	# get all branches in stage commands
 	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.stage.*.[] | path | .[-1]' -)"} )
@@ -762,9 +762,9 @@ __git_replay_write_rebase_onto_todos() {
 	local newbase
 	local -a newbases
 
-	(( $('builtin' 'echo' $config | yq eval '.rebase_onto | length' -) )) || return
+	(( $('builtin' 'echo' $config | yq eval '.rebase-onto | length' -) )) || return
 
-	newbases=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase_onto.* | path | .[-1]' -)"} )
+	newbases=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase-onto.* | path | .[-1]' -)"} )
 	for newbase in $newbases; do
 		if ! git show-ref --verify --quiet refs/heads/$newbase; then
 			# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
@@ -774,7 +774,7 @@ __git_replay_write_rebase_onto_todos() {
 			__git_replay_print_error "There is a problem in the 'rebase-onto.*' configuration.\nFix it and run me again."
 		fi
 
-		upstreams=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase_onto.$newbase.[] | path | .[-1]" -)"} )
+		upstreams=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase-onto.$newbase.[] | path | .[-1]" -)"} )
 		for upstream in $upstreams; do
 			if ! git show-ref --verify --quiet refs/heads/$upstream; then
 				# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
@@ -784,7 +784,7 @@ __git_replay_write_rebase_onto_todos() {
 				__git_replay_print_error "There is a problem in the 'rebase-onto.$newbase.*' configuration.\nFix it and run me again."
 			fi
 
-			branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase_onto.$newbase.$upstream.[]" -)"} )
+			branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase-onto.$newbase.$upstream.[]" -)"} )
 			for branch in $branches; do
 				if ! git show-ref --verify --quiet refs/heads/$branch; then
 					# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
