@@ -78,9 +78,11 @@ __git_replay_do_todo() {
 			touch $action_path
 			'builtin' 'echo' merge > $action_path
 
-			__git_replay_print_log "Merging $commit into $branch"
+			if (( dry_run )); then
+				__git_replay_print_log "Would merge $commit into $branch"
+			else
+				__git_replay_print_log "Merging $commit into $branch"
 
-			if ! (( dry_run )); then
 				if (( quiet )); then
 					git merge --quiet --rerere-autoupdate --no-ff --no-edit $commit
 					the_exit_code=$?
@@ -119,9 +121,11 @@ __git_replay_do_todo() {
 			'builtin' 'echo' rebase > $action_path
 
 			if (( back_up )); then
-				__git_replay_print_log "Backing up $branch"
+				if (( dry_run )); then
+					__git_replay_print_log "Would back up $branch"
+				else
+					__git_replay_print_log "Backing up $branch"
 
-				if ! (( dry_run )); then
 					if (( quiet )); then
 						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					else
@@ -131,9 +135,11 @@ __git_replay_do_todo() {
 				fi
 			fi
 
-			__git_replay_print_log "Rebasing $branch off $upstream"
 
-			if ! (( dry_run )); then
+			if (( dry_run )); then
+				__git_replay_print_log "Would rebase $branch off $upstream"
+			else
+				__git_replay_print_log "Rebasing $branch off $upstream"
 				if (( quiet )); then
 					git rebase --quiet --rerere-autoupdate $upstream $branch
 					the_exit_code=$?
@@ -189,9 +195,12 @@ __git_replay_do_todo() {
 			'builtin' 'echo' rebased > $action_path
 
 			if (( back_up )); then
-				__git_replay_print_log "Backing up $branch"
 
-				if ! (( dry_run )); then
+				if (( dry_run )); then
+					__git_replay_print_log "Would back up $branch"
+				else
+					__git_replay_print_log "Backing up $branch"
+
 					if (( quiet )); then
 						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					else
@@ -201,9 +210,11 @@ __git_replay_do_todo() {
 				fi
 			fi
 
-			__git_replay_print_log "Rebasing $branch onto $newbase from $upstream"
+			if (( dry_run )); then
+				__git_replay_print_log "Would rebase $branch onto $newbase from $upstream"
+			else
+				__git_replay_print_log "Rebasing $branch onto $newbase from $upstream"
 
-			if ! (( dry_run )); then
 				if (( quiet )); then
 					git rebase --quiet --rerere-autoupdate --onto $newbase $upstream $branch
 					the_exit_code=$?
@@ -236,9 +247,12 @@ __git_replay_do_todo() {
 			start_point=$cmd_words[3]
 
 			if (( back_up )); then
-				__git_replay_print_log "Backing up $branch"
 
-				if ! (( dry_run )); then
+				if (( dry_run )); then
+					__git_replay_print_log "Would back up $branch"
+				else
+					__git_replay_print_log "Backing up $branch"
+
 					if (( quiet )); then
 						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
 					else
@@ -248,9 +262,11 @@ __git_replay_do_todo() {
 				fi
 			fi
 
-			__git_replay_print_log "Resetting $branch to $start_point"
+			if (( dry_run )); then
+				__git_replay_print_log "Would reset $branch to $start_point"
+			else
+				__git_replay_print_log "Resetting $branch to $start_point"
 
-			if ! (( dry_run )); then
 				if (( quiet )); then
 					git checkout --quiet -B $branch $start_point
 					the_exit_code=$?
@@ -463,7 +479,7 @@ __git_replay_main() {
 		done
 
 
-		__git_replay_print_log Replay complete
+		(( dry_run )) || __git_replay_print_log Replay complete
 	fi
 
 	__git_replay_pop_todo
