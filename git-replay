@@ -327,10 +327,13 @@ __git_replay_main() {
 	local -i subcommands
 	local -a todos
 
-	rev=$(git config replay.rev)
 	queue_rebases=1
 	queue_rebase_ontos=1
 	queue_stages=1
+
+	if [[ -n $root ]]; then
+		rev=$(git config replay.rev)
+	fi
 
 	for opt in $@; do
 		[[ $opt == "--no-color" ]] && no_color=1
@@ -475,7 +478,9 @@ __git_replay_main() {
 		esac
 	done
 
-	(( subcommands > 1 )) && __git_replay_print_error "git-replay too many subcommands"
+	[[ -n $root ]] || __git_replay_print_error "fatal: not a git repository (or any of the parent directories): .git"
+
+	(( subcommands > 1 )) && __git_replay_print_log "git-replay too many subcommands"
 
 	if [[ -n $rev ]]; then
 		config=$(git show $rev:$file)
@@ -904,23 +909,13 @@ emulate -L zsh
 
 'builtin' 'setopt' prompt_percent
 
-root=$(git rev-parse --show-toplevel 2>/dev/null)
-if [[ -z $root ]]; then
-	__git_replay_print_log "Not a Git repo"
-	return
-fi
+dir_name=replay
 
 readonly SOURCE_PATH=${0:A:h}
 readonly BACKUP_PREFIX="git-replay"
 readonly VERSION=3.0.0-beta.2
 
 mkdir -p ${TMPDIR:-/tmp/}git-replay
-
-dir_name=replay
-dir=$root/.git/$dir_name
-todo_path=${dir}/git-replay-todos
-warning_path=${dir}/git-replay-warnings
-action_path=${dir}/git-replay-current-action
 
 config=
 file=${$(git config replay.file):-git-replay.yaml}
@@ -932,5 +927,14 @@ file=${$(git config replay.file):-git-replay.yaml}
 'builtin' 'typeset' -i quiet
 'builtin' 'typeset' -i quieter
 'builtin' 'typeset' -a __git_replay_warnings
+
+root=$(git rev-parse --show-toplevel 2>/dev/null)
+
+if [[ -n $root ]]; then
+	dir=$root/.git/$dir_name
+	todo_path=${dir}/git-replay-todos
+	warning_path=${dir}/git-replay-warnings
+	action_path=${dir}/git-replay-current-action
+fi
 
 __git_replay_main $@
