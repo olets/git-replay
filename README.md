@@ -2,7 +2,7 @@
 
 Automate the rebasing of Git branches and creation of "stage" branches (ie branches into which one or more feature branches are merged with a merge commit).
 
-Handy if you have several features in progress at once, and find yourself rebasing feature branches and recreating stage branches every time there's a significant change in the trunk.
+Handy if you have several features in progress at once, and find yourself rebasing feature branches and/or recreating stage branches every time there's a significant change in the trunk.
 
 - [Requirements](#requirements)
 - [Installation](#installation)
