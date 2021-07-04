@@ -488,11 +488,12 @@ __git_replay_main() {
 	__git_replay_warnings && rm $warning_path
 
 	if (( dediverge )); then
-		# if subcommand was 'dediverge'
+		# subcommand was 'dediverge'
 		__git_replay_dediverge 1
 	elif (( auto_dediverge && has_diverged_branch )); then
-		# if --dediverge was passed and branches diverged
 		__git_replay_dediverge
+	elif (( auto_dediverge && dry_run )); then
+		__git_replay_print_log "Would check the replay config for diverged branches"
 	fi
 
 	[[ -f $todo_path || -f $warning_path ]] || __git_replay_abort
@@ -711,8 +712,14 @@ __git_replay_dediverge() {
 	fi
 
 	# handle diverged branches
-	if ! (( dry_run )); then
-		for diverged_branch in $diverged_branches; do
+	for diverged_branch in $diverged_branches; do
+		if (( dry_run )); then
+			if (( force_dediverge )); then
+				__git_replay_print_log "Would force push $diverged_branch"
+			else
+				__git_replay_print_log "Would offer to force push $diverged_branch"
+			fi
+		else
 			if ! (( force_dediverge )); then
 				'builtin' 'echo' -n "\\n\`push --force-with-lease' the branch \`$diverged_branch'? It is up to you to make sure this is safe. [yY to accept, any other key to skip] "
 				read reply
@@ -731,8 +738,8 @@ __git_replay_dediverge() {
 				'builtin' 'print' "git push --force-with-lease"
 				git push --force-with-lease
 			fi
-		done
-	fi
+		fi
+	done
 }
 
 __git_replay_write_rebase_todos() {
