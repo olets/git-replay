@@ -20,6 +20,30 @@ __git_replay_abort() {
 	rm -rf $dir
 }
 
+__git_replay_back_up() {
+	local branch
+
+	(( $# )) || __git_replay_print_error "git replay back-up: no branch specified"
+
+	branch=$1
+
+	if (( dry_run )); then
+		__git_replay_print_log "Would back up $branch"
+	else
+		__git_replay_print_log "Backing up $branch"
+
+		if (( quiet )); then
+			git branch --quiet --force $BACKUP_PREFIX/$branch $branch || \
+				'builtin' 'echo' "The branch \`$branch' was not backed up. Perhaps it did not exist at the time of backup?" >> $warning_path
+		else
+			'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
+
+			git branch --force $BACKUP_PREFIX/$branch $branch || \
+				'builtin' 'echo' "The branch \`$branch' was not backed up. Perhaps it did not exist at the time of backup?" >> $warning_path
+		fi
+	fi
+}
+
 __git_replay_delete_backup() {
 	local branch
 	local backup_branch
@@ -120,21 +144,9 @@ __git_replay_do_todo() {
 			touch $action_path
 			'builtin' 'echo' rebase > $action_path
 
-			if (( back_up )); then
-				if (( dry_run )); then
-					__git_replay_print_log "Would back up $branch"
-				else
-					__git_replay_print_log "Backing up $branch"
-
-					if (( quiet )); then
-						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
-					else
-						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
-						git branch --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
-					fi
-				fi
+			if (( back_up_before_manipulating )); then
+				__git_replay_back_up $branch
 			fi
-
 
 			if (( dry_run )); then
 				__git_replay_print_log "Would rebase $branch off $upstream"
@@ -194,20 +206,8 @@ __git_replay_do_todo() {
 			touch $action_path
 			'builtin' 'echo' rebased > $action_path
 
-			if (( back_up )); then
-
-				if (( dry_run )); then
-					__git_replay_print_log "Would back up $branch"
-				else
-					__git_replay_print_log "Backing up $branch"
-
-					if (( quiet )); then
-						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
-					else
-						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
-						git branch --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
-					fi
-				fi
+			if (( back_up_before_manipulating )); then
+				__git_replay_back_up $branch
 			fi
 
 			if (( dry_run )); then
@@ -246,20 +246,8 @@ __git_replay_do_todo() {
 			branch=$cmd_words[2]
 			start_point=$cmd_words[3]
 
-			if (( back_up )); then
-
-				if (( dry_run )); then
-					__git_replay_print_log "Would back up $branch"
-				else
-					__git_replay_print_log "Backing up $branch"
-
-					if (( quiet )); then
-						git branch --quiet --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
-					else
-						'builtin' 'print' "git branch --force $BACKUP_PREFIX/$branch $branch"
-						git branch --force $BACKUP_PREFIX/$branch $branch || __git_replay_handle_failed_backup $branch
-					fi
-				fi
+			if (( back_up_before_manipulating )); then
+				__git_replay_back_up $branch
 			fi
 
 			if (( dry_run )); then
@@ -285,12 +273,22 @@ __git_replay_do_todo() {
 	esac
 }
 
-__git_replay_handle_failed_backup() {
-	local branch
+__git_replay_get_branches() {
+	local -a branches
 
-	branch=$1
+	# get all branches in rebase commands
+	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase.*.[]' -)"} )
 
-	'builtin' 'echo' "The branch \`$branch' was not backed up. Perhaps it did not exist at the time of backup?" >> $warning_path
+	# get all branches in rebase-onto commands
+	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase-onto.*.*.[]' -)"} )
+
+	# get all branches in stage commands
+	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.stage.*.[] | path | .[-1]' -)"} )
+
+	# unique-ify
+	typeset -U branches
+
+	echo $branches
 }
 
 __git_replay_log_divergence() {
@@ -308,8 +306,9 @@ __git_replay_log_divergence() {
 
 __git_replay_main() {
 	local -i auto_dediverge
-	local rev
-	local -i continue
+	local branch
+	local -a branches
+	local -i continue_in_progress_todo
 	local -i dediverge
 	local -i exit_code
 	local -i force_dediverge
@@ -318,6 +317,7 @@ __git_replay_main() {
 	local -i queue_rebases
 	local -i queue_rebase_ontos
 	local -i queue_stages
+	local rev
 	local -a todos
 
 	rev=$(git config replay.rev)
@@ -351,14 +351,14 @@ __git_replay_main() {
 				;;
 			--continue)
 				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
-				continue=1
+				continue_in_progress_todo=1
 				queue_rebase_ontos=0
 				queue_rebases=0
 				queue_stages=0
 				shift
 				;;
 			--back-up)
-				back_up=1
+				back_up_before_manipulating=1
 				shift
 				;;
 			--dediverge)
@@ -398,7 +398,7 @@ __git_replay_main() {
 				;;
 			--skip)
 				[[ -f $todo_path ]] || __git_replay_print_error "fatal: No replay in progress?"
-				continue=1
+				continue_in_progress_todo=1
 				queue_rebase_ontos=0
 				queue_rebases=0
 				queue_stages=0
@@ -409,6 +409,13 @@ __git_replay_main() {
 			--version)
 				'builtin' 'printf' "git-replay version %s\n" "$VERSION"
 				return
+				;;
+			back-up)
+				back_up=1
+				queue_rebases=0
+				queue_rebase_ontos=0
+				queue_stages=0
+				shift
 				;;
 			dediverge)
 				dediverge=1
@@ -459,7 +466,7 @@ __git_replay_main() {
 
 	(( exit_code )) && __git_replay_print_error "Could not find the file $file${rev:+ in rev \`$rev\'}"
 
-	if [[ -f $todo_path ]] && ! (( continue )); then
+	if [[ -f $todo_path ]] && ! (( continue_in_progress_todo )); then
 		# This error's language follows that given by `git rebase` when a rebase is already in progress
 		__git_replay_print_error "fatal: It seems that there is already a replay todo file, and\nI wonder if you are in the middle of another replay.  If that is the\ncase, please try\n        git replay [--file <file>] (--continue | --abort | --skip)\nIf that is not the case, please\n        rm \".git/$dir_name/git-replay-todos\"\nand run me again.  I am stopping in case you still have something\nvalueable there."
 	fi
@@ -470,6 +477,14 @@ __git_replay_main() {
 	(( queue_rebases )) && __git_replay_write_rebase_todos
 	(( queue_rebase_ontos )) && __git_replay_write_rebase_onto_todos
 	(( queue_stages )) && __git_replay_write_staging_todos
+
+	if (( back_up )); then
+		branches=( ${(z)$(__git_replay_get_branches)} )
+
+		for branch in $branches; do
+			__git_replay_back_up $branch
+		done
+	fi
 
 	todos=( ${(f)"$('command' 'cat' $todo_path)"} )
 	if (( ${#todos} )); then
@@ -679,17 +694,7 @@ __git_replay_dediverge() {
 
 	(( should_log_context )) && __git_replay_print_log Checking the replay config for diverged branches...
 
-	# get all branches in rebase commands
-	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase.*.[]' -)"} )
-
-	# get all branches in rebase-onto commands
-	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase-onto.*.*.[]' -)"} )
-
-	# get all branches in stage commands
-	branches+=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.stage.*.[] | path | .[-1]' -)"} )
-
-	# unique-ify
-	typeset -U branches
+	branches=( ${(z)$(__git_replay_get_branches)} )
 
 	# identify diverged branches
 	for branch in $branches; do
@@ -891,7 +896,7 @@ action_path=${dir}/git-replay-current-action
 config=
 file=${$(git config replay.file):-git-replay.yaml}
 
-'builtin' 'typeset' -i back_up
+'builtin' 'typeset' -i back_up_before_manipulating
 'builtin' 'typeset' -A color
 'builtin' 'typeset' -i dry_run
 'builtin' 'typeset' -i has_diverged_branch

@@ -159,6 +159,10 @@ Add `--force` to skip the prompt.
 
 Skips the current action and continues the in-progress replay.
 
+#### back-up
+
+Create `git-replay/`-prefixed backup branches for every branch that would be manipulated, and do nothing else.
+
 #### dediverge
 
 ```shell

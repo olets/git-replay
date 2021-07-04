@@ -11,6 +11,8 @@ git-replay \- automate Git rebases and stage creation
 	[(\fI--quiet\fR | \fI-q\fR) | (\fI--quieter\fR | \fI-qq\fR)]
 	[\fI--no-color\fR]
 
+\fBgit replay back-up\fR [\fI--force\fR]
+
 \fBgit replay dediverge\fR [\fI--force\fR]
 
 \fBgit replay delete-backup\fR [\fI--file <config file path>\fR]
@@ -61,6 +63,11 @@ The \fI--dediverge\fR option follows up the automation with \fIgit replay
 dediverge\fR. Largely equivalent to following a replay with \fIgit replay
 dediverge\fR but with less repetition in the logs. Add \fI--force\fR to not
 prompt before force pushing.
+
+.IP \(bu
+\fBgit replay back-up\fR [\fI--force\fR]
+
+Back up manipulated branches.
 
 .IP \(bu
 \fBgit replay dediverge\fR [\fI--force\fR]
