@@ -303,7 +303,7 @@ rebase:
     - another
 ```
 
-> Tip: leverage [`@{u}`](https://www.git-scm.com/docs/gitrevisions#Documentation) (or [`@{push}`](https://www.git-scm.com/docs/gitrevisions#Documentation) in triangular workflows) and `rebase-onto` to manage stacked branches.
+> Tip: leverage [gitrevisions](https://git-scm.com/docs/gitrevisions#Documentation/gitrevisions.txt) and `rebase-onto` to manage stacked branches.
 >
 > ```yaml
 > rebase:

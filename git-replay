@@ -33,7 +33,7 @@ __git_replay_delete_backup() {
 	for backup_branch in $backup_branches; do
 		branch=${backup_branch#$BACKUP_PREFIX/}
 
-		if ! git show-ref --verify --quiet refs/heads/$branch; then
+		if ! git rev-parse $branch &>/dev/null; then
 			mkdir -p $dir
 			touch $warning_path
 
@@ -731,7 +731,7 @@ __git_replay_write_rebase_todos() {
 	upstreams=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase.* | path | .[-1]' -)"} )
 	for upstream in $upstreams; do
 
-		if ! git show-ref --verify --quiet refs/heads/$upstream; then
+		if ! git rev-parse $upstream &>/dev/null; then
 			# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
 			'builtin' 'print' "fatal: invalid upstream '$upstream'\n"
 
@@ -739,14 +739,14 @@ __git_replay_write_rebase_todos() {
 			__git_replay_print_error "There is a problem in the 'rebase.*' configuration.\nFix it and run me again."
 		fi
 
-		branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase.$upstream.[]" -)"} )
+		branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase.\"$upstream\".[]" -)"} )
 		for branch in $branches; do
-			if ! git show-ref --verify --quiet refs/heads/$branch; then
+			if ! git rev-parse $branch &>/dev/null; then
 				# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
 				'builtin' 'print' "fatal: fatal: no such branch/commit '$branch'\n"
 
 				rm $todo_path 2>/dev/null
-				__git_replay_print_error "There is a problem in the 'rebase.$upstream.*' configuration.\nFix it and run me again."
+				__git_replay_print_error "There is a problem in the 'rebase.\"$upstream\".*' configuration.\nFix it and run me again."
 			fi
 
 			'builtin' 'echo' "rebase $upstream $branch" >> $todo_path
@@ -763,10 +763,10 @@ __git_replay_write_rebase_onto_todos() {
 	local -a newbases
 
 	(( $('builtin' 'echo' $config | yq eval '.rebase-onto | length' -) )) || return
-
+	# set -x
 	newbases=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.rebase-onto.* | path | .[-1]' -)"} )
 	for newbase in $newbases; do
-		if ! git show-ref --verify --quiet refs/heads/$newbase; then
+		if ! git rev-parse $newbase &>/dev/null; then
 			# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
 			'builtin' 'print' "fatal: Does not point to a valid commit '$newbase'\n"
 
@@ -774,30 +774,31 @@ __git_replay_write_rebase_onto_todos() {
 			__git_replay_print_error "There is a problem in the 'rebase-onto.*' configuration.\nFix it and run me again."
 		fi
 
-		upstreams=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase-onto.$newbase.[] | path | .[-1]" -)"} )
+		upstreams=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase-onto.\"$newbase\".[] | path | .[-1]" -)"} )
 		for upstream in $upstreams; do
-			if ! git show-ref --verify --quiet refs/heads/$upstream; then
+			if ! git rev-parse $upstream &>/dev/null; then
 				# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
 				'builtin' 'print' "fatal: invalid upstream '$upstream'\n"
 
 				rm $todo_path 2>/dev/null
-				__git_replay_print_error "There is a problem in the 'rebase-onto.$newbase.*' configuration.\nFix it and run me again."
+				__git_replay_print_error "There is a problem in the 'rebase-onto.\"$newbase\".*' configuration.\nFix it and run me again."
 			fi
 
-			branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase-onto.$newbase.$upstream.[]" -)"} )
+			branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".rebase-onto.\"$newbase\".\"$upstream\".[]" -)"} )
 			for branch in $branches; do
-				if ! git show-ref --verify --quiet refs/heads/$branch; then
+				if ! git rev-parse $branch &>/dev/null; then
 					# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
 					'builtin' 'print' "fatal: fatal: no such branch/commit '$branch'\n"
 
 					rm $todo_path 2>/dev/null
-					__git_replay_print_error "There is a problem in the 'rebase-onto.$newbase.$upstream.*' configuration.\nFix it and run me again."
+					__git_replay_print_error "There is a problem in the 'rebase-onto.\"$newbase\".\"$upstream\".*' configuration.\nFix it and run me again."
 				fi
 
 				'builtin' 'echo' "rebase-onto $newbase $upstream $branch" >> $todo_path
 			done
 		done
 	done
+	# set +x
 }
 
 __git_replay_write_staging_todos() {
@@ -812,7 +813,7 @@ __git_replay_write_staging_todos() {
 
 	start_points=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval '.stage.* | path | .[-1]' -)"} )
 	for start_point in $start_points; do
-		if ! git show-ref --verify --quiet refs/heads/$start_point; then
+		if ! git rev-parse $start_point &>/dev/null; then
 			# This error's language follows that of `git reset --hard <a nonexistent ref>`
 			'builtin' 'print' "fatal: ambiguous argument '$start_point': unknown revision.\n"
 
@@ -820,18 +821,18 @@ __git_replay_write_staging_todos() {
 			__git_replay_print_error "There is an error in the 'stage.*' configuration.\nFix it and run me again."
 		fi
 
-		branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".stage.$start_point.[] | path | .[-1]" -)"} )
+		branches=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".stage.\"$start_point\".[] | path | .[-1]" -)"} )
 		for branch in $branches; do
 			'builtin' 'echo' "stage-start $branch $start_point" >> $todo_path
 
-			commits=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".stage.$start_point.$branch.[]" -)"} )
+			commits=( ${(f)"$('builtin' 'echo' $config | 'command' 'yq' eval ".stage.\"$start_point\".\"$branch\".[]" -)"} )
 			for commit in $commits; do
-				if ! git show-ref --verify --quiet refs/heads/$commit; then
+				if ! git rev-parse $commit &>/dev/null; then
 					# This error's language follows that of `git merge --no-ff <a nonexistent ref>`
 					'builtin' 'print' "merge: $commit - not something we can merge\n"
 
 					rm $todo_path 2>/dev/null
-					__git_replay_print_error "There is a problem in the 'stage.$branch.*' configuration.\nFix it and run me again."
+					__git_replay_print_error "There is a problem in the 'stage.\"$branch\".*' configuration.\nFix it and run me again."
 				fi
 
 				'builtin' 'echo' "merge $commit $branch" >> $todo_path
