@@ -324,6 +324,7 @@ __git_replay_main() {
 	local -i queue_stages
 	local -i restore_backup
 	local rev
+	local -i subcommands
 	local -a todos
 
 	rev=$(git config replay.rev)
@@ -385,6 +386,7 @@ __git_replay_main() {
 				;;
 			--help|\
 			help)
+				(( subcommands++ ))
 				'command' 'man' git-replay 2>/dev/null || 'command' 'man' ${SOURCE_PATH}/man/man1/git-replay.1
 				return
 				;;
@@ -417,6 +419,7 @@ __git_replay_main() {
 				return
 				;;
 			back-up)
+				(( subcommands++ ))
 				back_up=1
 				queue_rebases=0
 				queue_rebase_ontos=0
@@ -424,6 +427,7 @@ __git_replay_main() {
 				shift
 				;;
 			dediverge)
+				(( subcommands++ ))
 				dediverge=1
 				queue_rebases=0
 				queue_rebase_ontos=0
@@ -431,6 +435,7 @@ __git_replay_main() {
 				shift
 				;;
 			delete-backup)
+				(( subcommands++ ))
 				delete_backup=1
 				queue_rebases=0
 				queue_rebase_ontos=0
@@ -439,16 +444,19 @@ __git_replay_main() {
 				;;
 			# help -- see --help
 			rebase)
+				(( subcommands++ ))
 				queue_rebase_ontos=0
 				queue_stages=0
 				shift
 				;;
 			rebase-onto)
+				(( subcommands++ ))
 				queue_rebases=0
 				queue_stages=0
 				shift
 				;;
 			restore-backup)
+				(( subcommands++ ))
 				queue_rebases=0
 				queue_rebase_ontos=0
 				queue_stages=0
@@ -456,6 +464,7 @@ __git_replay_main() {
 				shift
 				;;
 			stage)
+				(( subcommands++ ))
 				queue_rebases=0
 				queue_rebase_ontos=0
 				shift
@@ -465,6 +474,8 @@ __git_replay_main() {
 				;;
 		esac
 	done
+
+	(( subcommands > 1 )) && __git_replay_print_error "git-replay too many subcommands"
 
 	if [[ -n $rev ]]; then
 		config=$(git show $rev:$file)
