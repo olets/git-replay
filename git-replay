@@ -52,22 +52,26 @@ __git_replay_delete_backup() {
 	backup_branches=( ${(f)"$(git for-each-ref --format='%(refname:short)' refs/heads/$BACKUP_PREFIX)"} )
 	[[ -z $backup_branches ]] && __git_replay_print_warning "No backup branches found" && return
 
-	__git_replay_print_log "Deleting backups"
-
 	for backup_branch in $backup_branches; do
 		branch=${backup_branch#$BACKUP_PREFIX/}
 
-		if ! git rev-parse $branch &>/dev/null; then
-			mkdir -p $dir
-			touch $warning_path
-
-			'builtin' 'echo' "No branch \`$branch\` found. Not deleting the backup in case it is needed.\nTo delete the backup, run\n        git branch -D $backup_branch" >> $warning_path
+		if (( dry_run )); then
+			__git_replay_print_log "Would delete $backup_branch"
 		else
-			if (( quiet )); then
-				git branch --quiet -D $backup_branch
+			__git_replay_print_log "Deleting $backup_branch"
+
+			if ! git rev-parse $branch &>/dev/null; then
+				mkdir -p $dir
+				touch $warning_path
+
+				'builtin' 'echo' "No branch \`$branch\` found. Not deleting the backup in case it is needed.\nTo delete the backup, run\n        git branch -D $backup_branch" >> $warning_path
 			else
-				'builtin' 'print' "git branch -D $backup_branch"
-				git branch -D $backup_branch
+				if (( quiet )); then
+					git branch --quiet -D $backup_branch
+				else
+					'builtin' 'print' "git branch -D $backup_branch"
+					git branch -D $backup_branch
+				fi
 			fi
 		fi
 	done
@@ -310,6 +314,7 @@ __git_replay_main() {
 	local -a branches
 	local -i continue_in_progress_todo
 	local -i dediverge
+	local -i delete_backup
 	local -i exit_code
 	local -i force_dediverge
 	local -i no_color
@@ -317,6 +322,7 @@ __git_replay_main() {
 	local -i queue_rebases
 	local -i queue_rebase_ontos
 	local -i queue_stages
+	local -i restore_backup
 	local rev
 	local -a todos
 
@@ -425,9 +431,11 @@ __git_replay_main() {
 				shift
 				;;
 			delete-backup)
-				__git_replay_delete_backup
-				__git_replay_warnings && rm $warning_path
-				return
+				delete_backup=1
+				queue_rebases=0
+				queue_rebase_ontos=0
+				queue_stages=0
+				shift
 				;;
 			# help -- see --help
 			rebase)
@@ -441,9 +449,11 @@ __git_replay_main() {
 				shift
 				;;
 			restore-backup)
-				__git_replay_restore_backup
-				__git_replay_warnings && rm $warning_path
-				return
+				queue_rebases=0
+				queue_rebase_ontos=0
+				queue_stages=0
+				restore_backup=1
+				shift
 				;;
 			stage)
 				queue_rebases=0
@@ -486,13 +496,17 @@ __git_replay_main() {
 		done
 	fi
 
+	(( delete_backup )) && __git_replay_delete_backup
+
+	(( restore_backup )) && __git_replay_restore_backup
+
 	todos=( ${(f)"$('command' 'cat' $todo_path)"} )
+
 	if (( ${#todos} )); then
 		for todo in $todos; do
 			__git_replay_do_todo $todo
 			__git_replay_pop_todo
 		done
-
 
 		(( dry_run )) || __git_replay_print_log Replay complete
 	fi
@@ -633,18 +647,22 @@ __git_replay_restore_backup() {
 		branch=${backup_branch#$BACKUP_PREFIX/}
 
 		if git show-ref --verify --quiet refs/heads/$branch; then
-			__git_replay_print_log "Restoring $branch"
-
-			if (( quiet )); then
-				git checkout --quiet -B $branch $backup_branch
+			if (( dry_run )); then
+				__git_replay_print_log "Would restore $branch"
 			else
-				'builtin' 'print' "git checkout -B $branch $backup_branch"
-				git checkout -B $branch $backup_branch
+				__git_replay_print_log "Restoring $branch"
+
+				if (( quiet )); then
+					git checkout --quiet -B $branch $backup_branch
+				else
+					'builtin' 'print' "git checkout -B $branch $backup_branch"
+					git checkout -B $branch $backup_branch
+				fi
 			fi
 		fi
 	done
 
-	__git_replay_delete_backup
+	(( dry_run )) || __git_replay_delete_backup
 }
 
 __git_replay_warnings() {

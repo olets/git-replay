@@ -139,9 +139,7 @@ Option | Effect
 
 #### --abort
 
-Aborts the in-progress replay. _Unlike `git rebase --abort`, completed actions are not undone._
-
-If `--file <config file path>` or `--rev <revision>` are used, they must come before `--abort`. No other options are supported.
+Aborts the in-progress replay. _Unlike `git rebase --abort`, completed actions are not undone. Use `git replay restore-backup` to go back._
 
 #### --continue
 
@@ -181,8 +179,6 @@ git replay delete-backup
 
 Delete all backup branches. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
 
-Any options (e.g. `--quiet`) must be specified ahead of this command.
-
 #### help
 
 ```shell
@@ -216,8 +212,6 @@ git replay restore-backup
 Reset every configured branch to its `git-replay/`-prefixed backup, and then delete all backups.
 
 For every backup branch, reset the current branch to the backup and then delete the backup branch. _Backup branches are defined as those with the prefix `git-replay/`._ If the backed up branch is not found —for example if there is no branch `x` to go with the backup branch `git-replay/x`— a warning will be printed and the backup branch will not be deleted.
-
-Any options (e.g. `--quiet`) must be specified ahead of this command.
 
 #### stage
 
