@@ -1,3 +1,38 @@
+# [3.0.0](https://github.com/olets/git-replay/compare/v3.0.0-beta.2...v3.0.0) (2021-07-05)
+
+Breaking changes:
+
+- requires yq v4
+- removed `add` and `delete` commands for managing the YAML config from the command line
+
+Notable new features:
+
+- `--rev` flag, making it more convenient to track the config file
+- `--file` and `--rev` can be configured in the `git config`
+- `back-up` subcommand backs up and nothing else
+
+### Features
+
+* **add,delete:** drop support ([793f6ec](https://github.com/olets/git-replay/commit/793f6ec1ac244f95ddd2a0e35613f03dd5b25fc2))
+* **back-up:** new subcommand ([3f0eacb](https://github.com/olets/git-replay/commit/3f0eacbd8d03f961384947206bb930afd4a68b41))
+* **dediverge:** log appropriate dry-run messages ([1a677a2](https://github.com/olets/git-replay/commit/1a677a2b3c971e0e7eaea6b88de112b47624f303))
+* **dediverge:** use push destination ([c9b54ba](https://github.com/olets/git-replay/commit/c9b54ba650d1ba046fee9fbe17db6780a1fe7335))
+* **delete-backup:** rename from backup-delete ([9941a45](https://github.com/olets/git-replay/commit/9941a45bd7cfdf34da0d8aeb9249e3741fdf7789))
+* **delete,restore:** respect dry run, all options in any order ([e3552d0](https://github.com/olets/git-replay/commit/e3552d08b4f0dcb3a8fa2d6a4b5c7707f3ab2e41))
+* **dry run:** log messages make clear that no action was taken ([a389024](https://github.com/olets/git-replay/commit/a3890247eb884fbb73c2f2aff970b413442763a6))
+* **git-config:** support file and rev option configuration ([15a54e4](https://github.com/olets/git-replay/commit/15a54e4280ec29677ac21e3dc5418a4946f37102))
+* **help:** allow when not in a git repo ([230f0f7](https://github.com/olets/git-replay/commit/230f0f7b1c2e3af7a354a21dc229fe8038ecc85e))
+* **help:** always use 'man' command ([8d82ee0](https://github.com/olets/git-replay/commit/8d82ee09e605e3b848fadee8b989b77de6070050))
+* **rebase,rebase-onto,stage:** support gitrevisions ([47e7f02](https://github.com/olets/git-replay/commit/47e7f023bcfd0b302d56c3e2d957c904a7e24819))
+* **restore-backup:** rename from backup-restore ([b941bdc](https://github.com/olets/git-replay/commit/b941bdc673ce23581f4fbd69d5a8e6a2805efcee))
+* **rev:** do not require that the file is tracked ([d48e6a3](https://github.com/olets/git-replay/commit/d48e6a3076bf237ff50e28608e25638d6581fdf1))
+* **rev:** support new option ([6ec7460](https://github.com/olets/git-replay/commit/6ec746098d28238edb844880b5dabdb32fa1eb54))
+  - under the name "branch"
+* **rev:** rename from branch ([aa9cb89](https://github.com/olets/git-replay/commit/aa9cb8924a2a3e4749e6033aaca4287a2778cb55))
+* **subcommands:** allow only one at a time ([64e11a5](https://github.com/olets/git-replay/commit/64e11a5210f35d30135d7976edf71cdfed095004))
+
+
+
 # [2.3.0](https://github.com/olets/git-replay/compare/v2.2.1...v2.3.0) (2021-02-28)
 
 
