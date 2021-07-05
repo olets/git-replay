@@ -39,6 +39,10 @@ brew install olets/tap/git-replay
 1. Install [yq](https://github.com/mikefarah/yq)
 1. Install git-replay with a zsh plugin manager. Each has their own way of doing things. See your package manager's documentation or the [zsh plugin manager plugin installation procedures gist](https://gist.github.com/olets/06009589d7887617e061481e22cf5a4a). If you're new to zsh plugin management, at this writing zinit is a good choice for its popularity, frequent updates, and great performance.
 
+    zinit users will need to use the `ice`s `as"program" pick"git-replay"`
+
+    zplug users will need to use the tag `as:command`
+
     After adding the plugin to the manager, restart zsh:
 
     ```shell
