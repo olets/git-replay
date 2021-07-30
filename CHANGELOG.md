@@ -1,3 +1,12 @@
+# [3.1](https://github.com/olets/git-replay/compare/v3.0.0...v) (2021-07-30)
+
+
+### Features
+
+* **diverged:** distinguish between diverged and ahead/behind [[#5](https://github.com/olets/git-replay/issues/5)] ([654297a](https://github.com/olets/git-replay/commit/654297a64162ffbeb0280372218e5f70be9671db))
+
+
+
 # [3.0.0](https://github.com/olets/git-replay/compare/v3.0.0-beta.2...v3.0.0) (2021-07-05)
 
 Breaking changes:
