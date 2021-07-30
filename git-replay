@@ -79,14 +79,21 @@ __git_replay_delete_backup() {
 
 __git_replay_diverged() {
 	local branch
+	local merge_base
 	local sha
 	local remote_sha
 
 	branch=$1
 	sha=$(git rev-parse $branch)
 	remote_sha=$(git rev-parse $branch@{push} 2>/dev/null)
+	merge_base=$(git merge-base $sha $remote_sha 2>/dev/null)
 
-	[[ -n $sha && -n $remote_sha && $sha != $remote_sha ]]
+	[[ -n $branch \
+		&& -n $sha \
+		&& -n $remote_sha \
+		&& -n $merge_base \
+		&& $merge_base != $sha \
+		&& $merge_base != $remote_sha ]]
 }
 
 __git_replay_do_todo() {
