@@ -805,7 +805,7 @@ __git_replay_write_rebase_todos() {
 		for branch in $branches; do
 			if ! git rev-parse $branch &>/dev/null; then
 				# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
-				'builtin' 'print' "fatal: fatal: no such branch/commit '$branch'\n"
+				'builtin' 'print' "fatal: no such branch/commit '$branch'\n"
 
 				rm $todo_path 2>/dev/null
 				__git_replay_print_error "There is a problem in the 'rebase.$upstream.*' configuration.\nFix it and run me again."
@@ -850,7 +850,7 @@ __git_replay_write_rebase_onto_todos() {
 			for branch in $branches; do
 				if ! git rev-parse $branch &>/dev/null; then
 					# This error's language follows that of `git rebase --onto <a nonexistent ref> <upstream> <branch>`
-					'builtin' 'print' "fatal: fatal: no such branch/commit '$branch'\n"
+					'builtin' 'print' "fatal: no such branch/commit '$branch'\n"
 
 					rm $todo_path 2>/dev/null
 					__git_replay_print_error "There is a problem in the 'rebase-onto.$newbase.$upstream.*' configuration.\nFix it and run me again."
