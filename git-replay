@@ -542,6 +542,7 @@ __git_replay_main() {
 	if (( dediverge )); then
 		# subcommand was 'dediverge'
 		__git_replay_dediverge 1
+		(( dry_run )) || __git_replay_print_log "Dediverge complete"
 	elif (( auto_dediverge && has_diverged_branch )); then
 		__git_replay_dediverge
 	elif (( auto_dediverge && dry_run )); then
@@ -766,6 +767,8 @@ __git_replay_dediverge() {
 				__git_replay_print_log "Would offer to force push $diverged_branch"
 			fi
 		else
+			__git_replay_print_log "Dediverging $diverged_branch"
+
 			if ! (( force_dediverge )); then
 				'builtin' 'echo' -n "\\n\`push --force-with-lease' the branch \`$diverged_branch'? It is up to you to make sure this is safe. [yY to accept, any other key to skip] "
 				read reply
