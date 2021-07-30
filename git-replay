@@ -531,7 +531,7 @@ __git_replay_main() {
 			__git_replay_pop_todo
 		done
 
-		(( dry_run )) || __git_replay_print_log Replay complete
+		(( dry_run )) || __git_replay_print_log "Replay complete"
 	fi
 
 	__git_replay_pop_todo
@@ -734,7 +734,7 @@ __git_replay_dediverge() {
 
 	should_log_context=$1
 
-	(( should_log_context )) && __git_replay_print_log Checking the replay config for diverged branches...
+	(( should_log_context )) && __git_replay_print_log "Checking the replay config for diverged branches..."
 
 	branches=( ${(z)$(__git_replay_get_branches)} )
 
