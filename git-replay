@@ -769,7 +769,7 @@ __git_replay_dediverge() {
 			__git_replay_print_log "Dediverging $diverged_branch"
 
 			if ! (( force_dediverge )); then
-				'builtin' 'echo' -n "\\n\`push --force-with-lease' the branch \`$diverged_branch'? It is up to you to make sure this is safe. [yY to accept, any other key to skip] "
+				'builtin' 'echo' -n "\`git push --force-with-lease' the branch \`$diverged_branch'? [yY to accept, any other key to skip] "
 				read reply
 
 				if [[ $reply != 'y' && $reply != 'Y' ]]; then
