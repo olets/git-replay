@@ -542,7 +542,6 @@ __git_replay_main() {
 	if (( dediverge )); then
 		# subcommand was 'dediverge'
 		__git_replay_dediverge 1
-		(( dry_run )) || __git_replay_print_log "Dediverge complete"
 	elif (( auto_dediverge && has_diverged_branch )); then
 		__git_replay_dediverge
 	elif (( auto_dediverge && dry_run )); then
@@ -789,6 +788,8 @@ __git_replay_dediverge() {
 			fi
 		fi
 	done
+
+	(( dry_run )) || __git_replay_print_log "Dediverge complete"
 }
 
 __git_replay_write_rebase_todos() {
