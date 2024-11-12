@@ -1,5 +1,11 @@
 # git-replay ![GitHub release (latest by date)](https://img.shields.io/github/v/release/olets/git-replay)
 
+> [!IMPORTANT]
+> This project is not actively maintained. That doesn't mean it's going to go stale — Git is stable software, and what works now should continue to work. If you open a support ticket (GitHub issue) I'll respond.
+
+> [!IMPORTANT]
+> Not to be confused with [Git's `replay` command](https://git-scm.com/docs/git-replay), which was introduced years after I first published this project. The danger of coming up with an extension name that fits perfectly in the main product's naming idiom!
+
 Automate the rebasing of Git branches and creation of "stage" branches (ie branches into which one or more feature branches are merged with a merge commit).
 
 Handy if you have several features in progress at once, and find yourself rebasing feature branches and/or recreating stage branches every time there's a significant change in the trunk.
